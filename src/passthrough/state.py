@@ -110,7 +110,7 @@ class PTState(UserDict):
         self[kw] = self._conform_xpath_result(kw, val)
 
     def _conform_xpath_result(self, kw, val):
-        if isinstance(val, self._PROPERTIES[kw].types):  # check (again) as we might have unwrapped
+        if isinstance(val, self._PROPERTIES[kw].types):
             return val
         if isinstance(val, list):
             if not len(val):
@@ -121,7 +121,10 @@ class PTState(UserDict):
                 return self._conform_xpath_result(kw, val[0])  # try unwrapping the result (e.g. result of '*/text()')
 
         if int in self._PROPERTIES[kw].types and isinstance(val, float):  # XPath returns ints as floats
-            return int(val)
+            val = int(val)
+            if val < 0:
+                raise PTEvalError(f"{self._exp_str(kw)} evaluation yielded a negative number: {val}", self.t_elem)
+            return val
 
         if str in self._PROPERTIES[kw].types:
             if isinstance(val, etree._Element):
