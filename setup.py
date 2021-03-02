@@ -24,7 +24,7 @@ setup(
         "write_to": "src/passthrough/_pkg_info.py",
         "write_to_template": pkg_info_template,
     },
-    description="Passthrough - PDS4 label template handler",
+    description="Passthrough - PDS4 label template system",
     long_description=long_description,
     url=URL,
     packages=find_packages("src"),
@@ -34,7 +34,7 @@ setup(
     author_email="arl13@aber.ac.uk",
     license="MIT",
     classifiers=[
-        # TODO: change accordingly
+        # TODO: change as appropriate
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
         "Intended Audience :: Science/Research",
@@ -50,7 +50,7 @@ setup(
     ],
     install_requires=[
         "lxml",
-        "numpy>=1.14",
+        # "numpy>=1.14",
         # "pds4-tools>=1.1",
     ],
     # tests_requires=[
@@ -63,7 +63,7 @@ setup(
     entry_points={
         "console_scripts": [
             # "ptvalidate=passthrough.scripts.ptvalidate:cli",
-            # "pttesting=passthrough.testing.pttesting:cli",
+            "pttesting=passthrough.testing.pttesting:cli",
         ],
     },
     python_requires=">=3.6",
