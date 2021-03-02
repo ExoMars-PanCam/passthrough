@@ -4,15 +4,16 @@
 TODO; in the mean time, see the section **Development setup** towards the end for how to pip-install the repository in
 development mode to be able to run the preliminary test script `pttesting` which exercises an SVT-1b1 WACR template.
 
----
 
 ## Usage
-An initial simplified package usage example (will be refined and expanded as the API settles):
+An initial package usage example is included below; see the [pttesting script](./src/passthrough/testing/pttesting.py) 
+for a working implementation.
 ```python
 from lxml import etree
 from passthrough import Template
 
-source = etree.parse("~/path/to/source_label.xml")
+# support for loading from pds4_tools labels is in the works
+source = etree.parse("~/path/to/source_label.xml") 
 template = etree.parse("~/path/to/template_label.xml")
 source_map = {
     "primary": source,
@@ -27,7 +28,8 @@ out.label.xpath("//img:Exposure/img:exposure_duration", namespaces=out.nsmap)[0]
 out.export("~/path/to/output/directory/")
 ```
 
----
+The **API** section will be updated to include more detailed information in due course.
+
 
 ## Language documentation
 ### Overview
@@ -85,9 +87,9 @@ will only be fetched and included in the output label if HRC is not the active s
 
 ### Element properties
 > The term *element* is used as a shorthand for *XML element*. It is sometimes useful to distinguish between
-> leaf node and non-leaf node elements, which in PDS4 terminology are referred to as *attributes* and *classes*, 
-> respectively. The term *attribute* should always be taken to mean *PDS4 attribute*; *XML attribute* is therefore
-> never abbreviated.  
+> leaf node and non-leaf node elements, which in PDS4 terms are referred to as *attributes* and *classes*, 
+> respectively. The term *attribute* is therefore used as a shorthand for *PDS4 attribute*; *XML attribute* is always
+> spelled out.
 
 The PT template language is based around assigning *properties* to elements of a template. These properties consist of
 a single *keyword* - *expression* pair and are declared on elements in the template via XML attributes under the PT 
@@ -102,7 +104,8 @@ the language currently defines. Their individual usage patterns are described fu
 | required | XPath           | boolean                      | True    | yes       |
 | fill     | XPath           | string*                      | None    | no        |
 | defer    | XPath           | boolean                      | False   | no        |
-\* `fill` expressions do not have to result in a string directly; see below. 
+
+\* `fill` expressions do not have to result in a string directly; see the relevant section below. 
 
 Initially an element will be assigned the default value of each of the PT properties. Unless a property is explicitly
 declared on a given element via an XML attribute, for some it will be inherited from the element's parent. Certain
@@ -351,7 +354,7 @@ handoff:
     - record any `defer`red `fill`s or non-`fetch` `required` conditions for evaluation during post-processing 
 
 After the invoking processor has populated the remaining elements of the partial label, control is handed back to the
-template handler as part of the label export process (i.e. `Template.export(...)`, where the following steps occur:
+template handler as part of the label export process (i.e. `Template.export(...)`), where the following steps occur:
 - execute any recorded `defer`red `fill`s
 - evaluate any non-`fetch` `required` conditions; prune eligible optional elements
 - ensure all remaining elements are populated
@@ -359,7 +362,6 @@ template handler as part of the label export process (i.e. `Template.export(...)
 - remove unused namespace declarations (including the PT namespace)
 - export the label
 
----
 
 ## Development setup
 The project adopts a `setuptools` based structure and therefore can be installed in 
@@ -368,9 +370,9 @@ development mode using `pip`. From the project root directory:
     $ pip install -e .
 
 ~~This exposes the `ptvalidate` entry point script, which can be used to check templates for errors.~~
+
 Currently, this exposes the `pttesting` entry point script, which serves as a simple proof of concept.
 
----
 
 ## Planned features
 - Helpers on the API side for working with `File_Area_Observational`.
