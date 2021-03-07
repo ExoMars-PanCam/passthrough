@@ -164,7 +164,7 @@ class Template:
             if isinstance(state["multi"], int) and state["multi"] > 1:
                 self._process_multi_branch(t_elem, parent_state, state["multi"])
                 return
-            if state.exp["required"]:  # non-fetch required condition; should be evaluated at export
+            if state.exp["required"] is not None:  # non-fetch required condition; should be evaluated at export
                 self._deferred_reqs.append(state)
 
         if len(t_elem):
@@ -195,7 +195,8 @@ class Template:
         self._deferred_fills = []
 
     def _prune_empty_optionals(self):
-        for state in self._deferred_reqs:
+        # evaluate requireds inside-out to allow nested statements (e.g. for optional class with optional children)
+        for state in reversed(self._deferred_reqs):
             self.extensions.set_elem_context(state.t_elem)
             required = state.eval_deferred("required")
             if not required:
