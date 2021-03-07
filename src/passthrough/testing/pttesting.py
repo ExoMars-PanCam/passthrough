@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from lxml import etree
+# import pds4_tools
 
 from ..template import Template
 
@@ -8,13 +9,17 @@ from ..template import Template
 def cli(argv=None):
     file_dir = Path(__file__).parent.resolve()
     source = etree.parse(str(file_dir/"pan_raw_sc_r00_observation_20201110t221840.359z.xml"))
-    template = etree.parse(str(file_dir/"pp-200b_sample_base_wip.xml"))
-    sources = {
-        "primary": source,
-        "template": template,
-    }
+    # source = pds4_tools.read(str(file_dir/"pan_raw_sc_r00_observation_20201110t221840.359z.xml"), lazy_load=True, quiet=True)
+    sources = {"primary": source}
 
-    out = Template(template, sources, context_map={"toast": "good"}, keep_template_comments=False, skip_structure_check=False)
+    template = file_dir/"pp-200b_sample_base_wip.xml"
+
+    handler = Template(template,  # Accepts one of: Path, str, ElementTree, (pds4_tools) StructureList or Label
+                       sources,  # register the `pt:sources` map; values same as template (or lists thereof)
+                       # context_map={"toast": "good"},  # register lookups for the builtin extension `pt:context()`
+                       template_source_entry=True,  # create a "template" source map key referring to the partial label
+                       keep_template_comments=False,
+                       skip_structure_check=False)
 
     elems = {
         "//img:Exposure/img:exposure_duration": "2.501",
@@ -30,13 +35,13 @@ def cli(argv=None):
        "//img:Focus/img:best_focus_position": "5",
     }
 
-    if out.label.xpath("//psa:Sub-Instrument/psa:identifier = 'HRC'", namespaces=out.nsmap):
+    if handler.label.xpath("//psa:Sub-Instrument/psa:identifier = 'HRC'", namespaces=handler.nsmap):
         elems.update(hrc)
     else:
         elems.update(wac)
 
     for path, val in elems.items():
-        for instance in out.label.xpath(path, namespaces=out.nsmap):
+        for instance in handler.label.xpath(path, namespaces=handler.nsmap):
             instance.text = val
 
-    out.export(file_dir/"out")
+    handler.export(file_dir/"out")

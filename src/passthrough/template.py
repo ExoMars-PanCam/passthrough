@@ -3,26 +3,46 @@ from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
 from lxml import etree
+try:
+    from pds4_tools.reader.general_objects import StructureList
+    from pds4_tools.reader.label_objects import Label
+except ModuleNotFoundError:
+    StructureList = None
+    Label = None
 
 from .exc import PTFetchError, PTTemplateError
 from . import ext
 from . import util
 from .state import PTState, SourceGroup
 
+if Label is not None:
+    LabelLike = Union[etree._ElementTree, StructureList, Label, Path, str]
+else:
+    LabelLike = Union[etree._ElementTree, Path, str]
+
 
 class Template:
     def __init__(self,
-                 label: etree._ElementTree,
-                 source_map: Dict[str, Union[etree._ElementTree, Sequence[etree._ElementTree]]],
+                 template: LabelLike,
+                 source_map: Dict[str, Union[LabelLike, Sequence[LabelLike]]],
                  context_map: Optional[dict] = None,
+                 template_source_entry: bool = True,
                  keep_template_comments: bool = False,
                  skip_structure_check: bool = False):
-        self.sources = source_map
-        self.label = label
+        self.sources = self._source_map_to_etree_map(source_map)
+        try:
+            self.label = self._labellike_to_etree(template)
+        except TypeError as e:
+            raise TypeError(f"template is in an {e}") from None
+        if template_source_entry:
+            if "template" in self.sources:
+                raise KeyError("source map already contains a mapping for the key 'template'")
+            self.sources["template"] = self.label
+
         if not keep_template_comments:
             etree.strip_elements(self.label, etree.Comment, with_tail=False)
-        self.root = self.label.getroot()
 
+        self.root = self.label.getroot()
         self.nsmap = util.add_default_ns(self.root.nsmap)
 
         self.context_map = ext.Context(context_map)
@@ -36,11 +56,9 @@ class Template:
         self.extensions = ext.XPathExtensionManager()
         self.extensions.register(builtin_extensions)
 
-        # self.path_util = PathManipulator(self.root.nsmap, self._default_ns_prefix)
         self._deferred_fills = []
         self._deferred_reqs = []
 
-        # TODO: refactor out into parser/evaluator/pre-processor class?
         self._process_elem(PTState(parent=None, t_elem=None, source_map=self.sources), self.root)
 
         self._label_pre_handoff = None if skip_structure_check else deepcopy(self.label)
@@ -58,6 +76,42 @@ class Template:
             directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
         self.label.write(str(directory/filename), encoding="UTF-8", pretty_print=True, xml_declaration=True)
+
+    @staticmethod
+    def _labellike_to_etree(labellike: LabelLike) -> etree._ElementTree:
+        if isinstance(labellike, etree._ElementTree):
+            return labellike
+        if isinstance(labellike, Path):
+            labellike = str(labellike.expanduser().resolve())
+            # continue to handling of str
+        if isinstance(labellike, str):
+            return etree.parse(labellike)
+        base_url = None
+        if StructureList is not None and isinstance(labellike, StructureList):
+            prefix = "Processing label: "
+            log = labellike.read_in_log.split("\n")[0]
+            if log.startswith(prefix):
+                base_url = log[len(prefix):]  # *should* resolve to the abs path of the XML label
+            labellike = labellike.label
+            # continue to handling of Label
+        if Label is not None and isinstance(labellike, Label):
+            return etree.fromstring(labellike.to_string(unmodified=True), base_url=base_url).getroottree()
+        raise TypeError(f"unknown label format {type(labellike)}, expected one of {LabelLike}")
+
+    def _source_map_to_etree_map(self, smap: Dict[str, Union[LabelLike, Sequence[LabelLike]]]):
+        cache = {}
+        for key in smap:
+            if key in cache:
+                smap[key] = cache[key]
+            else:
+                try:
+                    if isinstance(smap[key], LabelLike.__args__):  # FIXME: __args__ is undocumented (= not reliable)
+                        smap[key] = cache[key] = self._labellike_to_etree(smap[key])
+                    else:
+                        smap[key] = cache[key] = [self._labellike_to_etree(ll) for ll in smap[key]]
+                except TypeError as e:
+                    raise TypeError(f"source map key {key} maps to an {e}") from None
+        return smap
 
     def _process_elem(self, parent_state: PTState, t_elem: etree._Element):
         if isinstance(t_elem, etree._Comment):
