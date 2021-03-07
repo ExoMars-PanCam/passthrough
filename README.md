@@ -2,7 +2,7 @@
 
 ## Installation
 TODO; in the mean time, see the section **Development setup** towards the end for how to pip-install the repository in
-development mode to be able to run the preliminary test script `pttesting` which exercises an SVT-1b1 WACR template.
+development mode to be able to run the preliminary test script `pttesting` which exercises an SVT-1b1 raw template.
 
 
 ## Usage
@@ -13,10 +13,12 @@ from lxml import etree
 from passthrough import Template
 
 # support for loading from pds4_tools labels is in the works
-source = etree.parse("~/path/to/source_label.xml") 
+source_primary = etree.parse("~/path/to/source_primary_label.xml") 
+source_secondary = etree.parse("~/path/to/source_secondary_label.xml") 
 template = etree.parse("~/path/to/template_label.xml")
 source_map = {
-    "primary": source,
+    "primary": source_primary,
+    "all": (source_primary, source_secondary),
     "template": template,
 }
 
@@ -36,8 +38,8 @@ The **API** section will be updated to include more detailed information in due 
 The passthrough (PT) template language supports the effective generation of PDS4 (XML) data product labels.
 
 Distinct from many conventional template systems, PT is not designed to transform an input data structure 
-directly into an output document. Rather, a template is pre-processed by the template handler into a partially populated 
-label which is then handed off to the client data product processor/generator. The client is responsible for populating 
+directly into an output document. Rather, a template is pre-processed by the template handler into a partially 
+populated label which is then handed off to the client data product processor. The client is responsible for populating 
 (most of) the remaining elements before handing back control to the template handler for post-processing and export.
 
 This usage pattern - simply referred to as "fetch, fill - fill, export" - has been deliberately chosen to leverage the 
@@ -52,8 +54,8 @@ As such, key features of the system include the ability to
 To facilitate these features, a declarative approach is taken. PT templates foremost consist of a skeleton structure of
 the PDS4 classes and attributes that comprise a given data product type (e.g. a raw image, distinct from its downstream
 calibrated counterpart). In addition to these "empty" elements, XML attributes - not to be confused with PDS4 
-attributes (i.e. leaf nodes; here just referred to as attributes) - are added by the human template preparer to inform 
-what pre- and post-processing shall be applied to specific elements and their descendants.
+attributes (i.e. leaf nodes; here termed *attributes*) - are added by the human template preparer to inform what pre- 
+and post-processing shall be applied to specific elements and their descendants.
 
 A key principle of PT is that a template must fully specify the structure of the output product label it describes.
 In other words, a template shall act as the blueprint for its output product, and clients are actively discouraged from
@@ -79,11 +81,12 @@ is marked with `pt:fetch="false()"`. This indicates that the template handler ex
 populated by the client (a calibration processor, in this scenario), and will verify this as part of post-processing.
 
 PT leverages the XML nature of PDS4 labels by making extensive use of XPath (and, as shown later, its ability to define
-custom extension functions). The `img:exposure_type` attribute in this example is absent in the source for a particular
-subinstrument. To inform the pre-processor of this, the element is marked as required on the condition that 
-`//psa:Sub-Instrument/psa:identifier != 'HRC'`, an XPath boolean expression that compares the value of the relevant 
-subinstrument attribute in the primary source label with the string literal "HRC". Thus `img:exposure_type` 
-will only be fetched and included in the output label if HRC is not the active subinstrument.
+custom extension functions). The `img:exposure_type` attribute in this example is absent in the source label if the
+data product belongs to a particular subinstrument. To inform the pre-processor of this, the element is marked as 
+required on the condition that `//psa:Sub-Instrument/psa:identifier != 'HRC'`, an XPath boolean expression that 
+compares the value of the relevant subinstrument attribute in the primary source label with the string literal "HRC". 
+Hence the absence of `img:exposure_type` in the source will only trigger an error condition if HRC is not the active 
+subinstrument.
 
 ### Element properties
 > The term *element* is used as a shorthand for *XML element*. It is sometimes useful to distinguish between
@@ -212,11 +215,11 @@ In a similar fashion to `required`, the `multi` property functions slightly diff
 declared within a `fetch` context or not. 
 ##### When fetching
 In this context `multi` is used to signal whether the pre-processor should expect to find multiple instances of an 
-element in the active source, and optionally how many. An evaluated value of True (e.g. as achieved with the XPath
-expressions `true()` or `1 = 1`) will duplicate the template element for each matched instance in the active source. If
-instead the expression evaluates to an integer, `N`, the effect is functionally equivalent to if the element (subtree) 
-was repeated `N` times in the template instead, with the exception that the pre-processor will raise an error if the 
-number of matched source instances is not equal to `N`.
+element in the active source, and optionally how many. An evaluated value of True (as achieved with any boolean 
+XPath expression such as `true()` or even `1 = 1`) will duplicate the template element for each matched instance in the 
+active source. If instead the expression evaluates to an integer, *N*, the effect is functionally equivalent to if the 
+element (subtree) was repeated *N* times in the template instead, with the exception that the pre-processor will raise 
+an error if the number of matched source instances is not equal to *N*.
 ```xml
 <geom:Motion_Counter pt:fetch="true()" pt:sources="primary">
     <geom:name/>
@@ -256,10 +259,10 @@ evaluates to the int `2`)
 ##### Non-corresponding source elements
 Revisiting our earlier example from the **Source groups** section, we see that there are two attributes that need to be 
 populated for each source: `lid_reference` and `emrsp_rm:operational_vid`. The values for both can be found in 
-statically known attributes in the source, but we cannot `fetch` them as they are not in the same document location as 
-the target template attributes. We could leave their population up to the client, but the "boiler plate" nature of the 
-copy-paste operations involved makes `fill`ing an attractive alternative, which also has the added benefit of making 
-this part of the template self-documenting: 
+statically known attributes in the source, but we cannot `fetch` them as they do not have the same paths as the target 
+template attributes. We could leave their population up to the client, but the "boiler plate" nature of the copy-paste 
+operations involved makes `fill`ing an attractive alternative, which also has the added benefit of making this part of 
+the template self-documenting: 
 ```xml
 <emrsp_rm:Processing_Inputs pt:fetch="false()">
     <emrsp_rm:Processing_Input_Identification pt:sources="all"> <!-- one entry each for all source products -->
