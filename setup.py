@@ -44,7 +44,7 @@ setup(
         "Programming Language :: Python :: 3 :: Only",
         "Topic :: Scientific/Engineering :: Physics",
     ],
-    keywords="file directory watcher clipboard",
+    keywords="PDS4 template language framework",
     setup_requires=[
         "setuptools_scm>=1.7",
     ],
