@@ -3,22 +3,12 @@ from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
 from lxml import etree
-try:
-    from pds4_tools.reader.general_objects import StructureList
-    from pds4_tools.reader.label_objects import Label
-except ModuleNotFoundError:
-    StructureList = None
-    Label = None
 
 from .exc import PTFetchError, PTTemplateError
 from . import ext
 from . import util
 from .state import PTState, SourceGroup
-
-if Label is not None:
-    LabelLike = Union[etree._ElementTree, StructureList, Label, Path, str]
-else:
-    LabelLike = Union[etree._ElementTree, Path, str]
+from .label import ATTR_PATHS, LabelLike, labellike_to_etree, add_default_ns, is_populated
 
 
 class Template:
@@ -31,7 +21,7 @@ class Template:
                  skip_structure_check: bool = False):
         self.sources = self._source_map_to_etree_map(source_map)
         try:
-            self.label = self._labellike_to_etree(template)
+            self.label = labellike_to_etree(template)
         except TypeError as e:
             raise TypeError(f"template is in an {e}") from None
         if template_source_entry:
@@ -43,7 +33,7 @@ class Template:
             etree.strip_elements(self.label, etree.Comment, with_tail=False)
 
         self.root = self.label.getroot()
-        self.nsmap = util.add_default_ns(self.root.nsmap)
+        self.nsmap = add_default_ns(self.root.nsmap)
 
         self.context_map = ext.Context(context_map)
         builtin_extensions = [
@@ -70,33 +60,12 @@ class Template:
         self._check_structure()
         etree.cleanup_namespaces(self.label)
         if filename is None:
-            lid = self.label.xpath("pds:Identification_Area/pds:logical_identifier/text()", namespaces=self.nsmap)[0]
+            lid = self.label.xpath(ATTR_PATHS['lid'], namespaces=self.nsmap)[0].text
             filename = f"{lid.split(':')[-1]}.xml"  # ExoMars/PSA specific
         if not isinstance(directory, Path):
             directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
         self.label.write(str(directory/filename), encoding="UTF-8", pretty_print=True, xml_declaration=True)
-
-    @staticmethod
-    def _labellike_to_etree(labellike: LabelLike) -> etree._ElementTree:
-        if isinstance(labellike, etree._ElementTree):
-            return labellike
-        if isinstance(labellike, Path):
-            labellike = str(labellike.expanduser().resolve())
-            # continue to handling of str
-        if isinstance(labellike, str):
-            return etree.parse(labellike)
-        base_url = None
-        if StructureList is not None and isinstance(labellike, StructureList):
-            prefix = "Processing label: "
-            log = labellike.read_in_log.split("\n")[0]
-            if log.startswith(prefix):
-                base_url = log[len(prefix):]  # *should* resolve to the abs path of the XML label
-            labellike = labellike.label
-            # continue to handling of Label
-        if Label is not None and isinstance(labellike, Label):
-            return etree.fromstring(labellike.to_string(unmodified=True), base_url=base_url).getroottree()
-        raise TypeError(f"unknown label format {type(labellike)}, expected one of {LabelLike}")
 
     def _source_map_to_etree_map(self, smap: Dict[str, Union[LabelLike, Sequence[LabelLike]]]):
         cache = {}
@@ -106,9 +75,9 @@ class Template:
             else:
                 try:
                     if isinstance(smap[key], LabelLike.__args__):  # FIXME: __args__ is undocumented (= not reliable)
-                        smap[key] = cache[key] = self._labellike_to_etree(smap[key])
+                        smap[key] = cache[key] = labellike_to_etree(smap[key])
                     else:
-                        smap[key] = cache[key] = [self._labellike_to_etree(ll) for ll in smap[key]]
+                        smap[key] = cache[key] = [labellike_to_etree(ll) for ll in smap[key]]
                 except TypeError as e:
                     raise TypeError(f"source map key {key} maps to an {e}") from None
         return smap
@@ -204,7 +173,7 @@ class Template:
                 for child in state.t_elem.iter("*"):  # .iter() includes the t_elem itself (for if it's a leaf node)
                     if len(child):
                         continue  # only interested in PDS4 attributes / leaf nodes
-                    status = util.is_populated(child)
+                    status = is_populated(child)
                     pop |= status
                     empty |= not status
                     if pop and empty:
@@ -231,7 +200,7 @@ class Template:
         for child in self.root.iter("*"):
             if len(child):
                 continue
-            if not util.is_populated(child):
+            if not is_populated(child):
                 raise PTTemplateError(f"unpopulated leaf node encountered at export", child)
 
     def _check_structure(self):

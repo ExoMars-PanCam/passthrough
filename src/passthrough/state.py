@@ -1,7 +1,7 @@
 from collections import namedtuple, UserDict, OrderedDict
 from typing import Dict, Union, Sequence, Optional
 
-from .util import add_default_ns
+from .label import add_default_ns
 
 from . import PT_NS
 from .exc import PTSyntaxError, PTEvalError, PTStateError, PTTemplateError

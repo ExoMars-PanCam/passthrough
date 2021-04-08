@@ -1,11 +1,9 @@
 from collections import OrderedDict
 from copy import deepcopy
 from datetime import datetime, timedelta
-from typing import Union, Dict
+from typing import Union
 
-from lxml import etree
-
-from . import DEFAULT_NS_PREFIX, PT_NS
+from . import PT_NS
 
 
 class ExoMarsDatetime:
@@ -204,19 +202,7 @@ class ProductLIDFormatter:
         return ":".join(field_list)
 
 
-def add_default_ns(nsmap: Dict[str, Union[str, None]]) -> Dict[str, str]:
-    nsmap[DEFAULT_NS_PREFIX] = nsmap[None]
-    del nsmap[None]
-    return nsmap
-
-
 def pt_clark(param: str):
     return f"{{{PT_NS['uri']}}}{param}"
 
 
-def is_populated(elem: etree._Element):
-    if elem.text is not None and bool(elem.text.strip()):
-        return True
-    if "xsi" in elem.nsmap and elem.attrib.get(f"{{{elem.nsmap['xsi']}}}nil", False) == "true":
-        return True
-    return False
