@@ -1,10 +1,10 @@
 from collections import UserDict
 from functools import partial
-from typing import Callable, Union, Sequence, Mapping
+from typing import Callable, Mapping, Sequence, Union
 
 from lxml import etree
 
-from . import util, PT_NS
+from . import PT_NS, util
 from .exc import PTEvalError
 
 
@@ -16,10 +16,14 @@ class XPathExtensionManager:
         self.fns.prefix = PT_NS["prefix"]
 
     def set_elem_context(self, t_elem):
+        # during tree traversal: set self.t_elem that will be passed to extensions
         self.t_elem = t_elem
-        # during tree traversal: set self.t_elem that will be passed to extension functions
 
-    def register(self, ext: Union[Callable, Sequence[Callable], Mapping[str, Callable]], name: str = None):
+    def register(
+        self,
+        ext: Union[Callable, Sequence[Callable], Mapping[str, Callable]],
+        name: str = None,
+    ):
         if isinstance(ext, Sequence):
             ext = {extension.__name__: extension for extension in ext}
         elif not isinstance(ext, Mapping):  # single callable
@@ -27,13 +31,15 @@ class XPathExtensionManager:
 
         for name, extension in ext.items():
             self.extensions[name] = extension
-            self.fns[name] = partial(self._dispatch, name)  # don't partial extension w/ fixed self.t_elem as it's dynamic
+            # don't partial extension directly w/ fixed self.t_elem as it's dynamic
+            self.fns[name] = partial(self._dispatch, name)
 
     def _dispatch(self, name, *args, **kwargs):
         return self.extensions[name](self.t_elem, *args, **kwargs)
 
 
 # Default/builtin extensions
+
 
 def self(t_elem, _):
     return t_elem
@@ -50,8 +56,9 @@ def lid_to_browse_lid(_, __, lid_string: str):
     parts = lid.fields["collection_id"].split("_")
     if len(parts) != 2:
         # Only allow data_* source collections for now (cal collection support TBC)
-        raise ValueError(f"Illegal source lid collection encountered: "
-                         f"{lid.fields['collection_id']}")
+        raise ValueError(
+            f"Illegal source LID collection encountered: {lid.fields['collection_id']}"
+        )
     lid.fields["collection_id"] = "_".join(["browse", parts[-1]])
     return str(lid)
 
@@ -67,4 +74,4 @@ class Context(UserDict):
         try:
             return str(self[key])
         except KeyError:
-            raise PTEvalError(f"context entry {key} has not been registered", t_elem)
+            raise PTEvalError(f"context entry '{key}' has not been registered", t_elem)

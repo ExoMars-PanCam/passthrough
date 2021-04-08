@@ -41,12 +41,17 @@ def labellike_to_etree(labellike: LabelLike) -> etree._ElementTree:
         prefix = "Processing label: "
         log = labellike.read_in_log.split("\n")[0]
         if log.startswith(prefix):
-            base_url = log[len(prefix):]  # *should* always resolve to the abs path of the XML label
+            # *should* always resolve to the abs path of the XML label
+            base_url = log[len(prefix) :]
         labellike = labellike.label
         # continue to handling of Label
     if Label is not None and isinstance(labellike, Label):
-        return etree.fromstring(labellike.to_string(unmodified=True), base_url=base_url).getroottree()
-    raise TypeError(f"unknown label format {type(labellike)}, expected one of {LabelLike}")
+        return etree.fromstring(
+            labellike.to_string(unmodified=True), base_url=base_url
+        ).getroottree()
+    raise TypeError(
+        f"unknown label format {type(labellike)}, expected one of {LabelLike}"
+    )
 
 
 def add_default_ns(nsmap: Dict[str, Union[str, None]]) -> Dict[str, str]:
@@ -58,6 +63,9 @@ def add_default_ns(nsmap: Dict[str, Union[str, None]]) -> Dict[str, str]:
 def is_populated(elem: etree._Element):
     if elem.text is not None and bool(elem.text.strip()):
         return True
-    if "xsi" in elem.nsmap and elem.attrib.get(f"{{{elem.nsmap['xsi']}}}nil", False) == "true":
+    if (
+        "xsi" in elem.nsmap
+        and elem.attrib.get(f"{{{elem.nsmap['xsi']}}}nil", False) == "true"
+    ):
         return True
     return False

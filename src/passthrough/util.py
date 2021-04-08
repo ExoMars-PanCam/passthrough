@@ -11,7 +11,6 @@ class ExoMarsDatetime:
     LABEL_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
     _EXPONENTS = {
         "s": 0,
-
     }
 
     def __init__(self, date_string: str, format_: str):
@@ -36,11 +35,13 @@ class ExoMarsDatetime:
         try:
             exponent = self._EXPONENTS[unit]
         except KeyError:
-            # TODO: catch in outer scope and rethrow with reference to sourceline if possible
-            raise ValueError(f"unrecognised unit '{unit}', expected one of {self._EXPONENTS.keys()}") from None
+            # TODO: catch in outer scope and rethrow with ref to sourceline if possible
+            raise ValueError(
+                f"unrecognised unit '{unit}', expected one of {self._EXPONENTS.keys()}"
+            ) from None
         if isinstance(delta, str):
             delta = float(delta)
-        delta = delta*10**exponent
+        delta = delta * 10 ** exponent
         self.datetime = self.datetime + timedelta(seconds=delta)
 
 
@@ -100,23 +101,27 @@ class VID:
             self.minor = 1 if self.minor is None else self.minor + 1
 
     def __str__(self):
-        return f"{self.major}.{self.minor}" if self.minor is not None else str(self.major)
+        return (
+            f"{self.major}.{self.minor}" if self.minor is not None else str(self.major)
+        )
 
 
 class ProductLIDFormatter:
-    LID_STRUCTURE = OrderedDict({
-        "prefix": None,
-        "bundle_id": None,
-        "collection_id": None,
-        "product_id": {
-            "instrument": None,
-            "processing_level": None,
-            "type": None,
-            "subunit": None,
-            "descriptor": None,
-            "time": None,
+    LID_STRUCTURE = OrderedDict(
+        {
+            "prefix": None,
+            "bundle_id": None,
+            "collection_id": None,
+            "product_id": {
+                "instrument": None,
+                "processing_level": None,
+                "type": None,
+                "subunit": None,
+                "descriptor": None,
+                "time": None,
+            },
         }
-    })
+    )
 
     def __init__(self, from_string: str = None):
         self.fields = deepcopy(self.LID_STRUCTURE)
@@ -146,8 +151,9 @@ class ProductLIDFormatter:
         subfields = fields[5].split("_")
         # <instrument>_<processing_level>_<type>[_<subunit>]_<descriptor>_[<time1>[_<time2>]]
         if len(subfields) not in (5, 6, 7):
-            raise ValueError(f"Invalid number of subfields ({len(subfields)}): "
-                             f"{fields[5]}")
+            raise ValueError(
+                f"Invalid number of subfields ({len(subfields)}): {fields[5]}"
+            )
 
         pid = self.fields["product_id"]
         pid["instrument"] = subfields.pop(0)
@@ -183,8 +189,10 @@ class ProductLIDFormatter:
         NOTE: currently relies on
         :return:
         """
-        if not (None not in self.fields.values() and
-                None not in self.fields["product_id"].values()):
+        if not (
+            None not in self.fields.values()
+            and None not in self.fields["product_id"].values()
+        ):
             raise ValueError("LID is incomplete")  # FIXME: warn instead?
         field_list = []
         for k in self.fields:
@@ -204,5 +212,3 @@ class ProductLIDFormatter:
 
 def pt_clark(param: str):
     return f"{{{PT_NS['uri']}}}{param}"
-
-
