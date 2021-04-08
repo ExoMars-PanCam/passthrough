@@ -382,28 +382,41 @@ template handler as part of the label export process (i.e. `Template.export(...)
 
 
 ## Development setup
-The project adopts a `setuptools` based structure and therefore can be installed in 
-development mode using `pip`. From the project root directory:
+The project uses [Poetry](https://python-poetry.org/) to manage dependencies and packaging.
+After cloning the passthrough repository and installing Poetry (e.g. `pipx install poetry`),
+the following steps (executed from the prolect root directory) will initialise the development environment:
     
-    $ pip install -e .
+    $ poetry env use python3.6  # create venv (substitute for the version you want to work against)
+    $ poetry install  # fetch dependencies defined in pyproject.toml and install prolect in dev mode
 
 ~~This exposes the `ptvalidate` entry point script, which can be used to check templates for errors.~~
 
 Currently, this exposes the `pttesting` entry point script, which serves as a simple proof of concept.
+The script can be executed via Poetry without activating the project's venv:
 
+    $ poetry run pttesting
+
+Alternatively, the venv can be activated first via Poetry:
+
+    $ poetry shell
+    $ pttesting
+
+Please refer to the Poetry documentation for further information on its usage.
 
 ## Planned features
-- Helpers on the API side for working with `File_Area_Observational`.
-- Full support for logging.
-- Automated tests.
-- Validation entry point script capable of statically checking templates.
-- Interoperability with `pds4_tools` loaded source labels.
-- If needed: `strict` property which actively discards non-`required` elements: in the `fetch` context, even if a
+- [ ] Helpers on the API side for working with `File_Area_Observational`.
+- [ ] Full support for logging.
+- [ ] Automated tests.
+- [ ] Validation entry point script capable of statically checking templates.
+- [x] Interoperability with `pds4_tools` loaded source labels.
+- [x] Common label interrogation/manipulation functionality exposed for clients to use.
+- [x] Adopt Poetry for packaging and dependency management.
+- [ ] If needed: `strict` property which actively discards non-`required` elements: in the `fetch` context, even if a
   source element is found; in the non-`fetch` context, even if the element if populated.
-- If needed: `ignore` property which allows unpopulated elements to remain in the exported label (for when a downstream 
+- [ ] If needed: `ignore` property which allows unpopulated elements to remain in the exported label (for when a downstream
   tool will perform modifications to the product before it is validated for correctness / ingested in the archive).
-- If needed: the ability to add element XML attributes via the template (likely not needed?)
-- Support for no-default-prefix XPath expressions via internal substitution (supporting XPath predicates etc. will
+- [ ] If needed: the ability to add element XML attributes via the template (likely not needed?)
+- [ ] Support for no-default-prefix XPath expressions via internal substitution (supporting XPath predicates etc. will
   require a tokenizer/parser be built, which is low on the priority list).
 
 ## ToDo (readme)
