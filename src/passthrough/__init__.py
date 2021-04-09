@@ -15,5 +15,7 @@ del _dist_meta
 
 PT_NS = {"prefix": "pt", "uri": __url__}
 
-from . import exc, label
+from . import exc, label_tools
 from .template import Template
+
+__all__ = ["__author__", "__version__", "exc", "label_tools", "PT_NS", "Template"]

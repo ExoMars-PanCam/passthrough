@@ -1,3 +1,14 @@
+"""PDS4 label interrogation and manipulation functionality"""
+
+__all__ = [
+    "LabelLike",
+    "PDS_NS_PREFIX",
+    "ATTR_PATHS",
+    "labellike_to_etree",
+    "add_default_ns",
+    "is_populated",
+]
+
 from pathlib import Path
 from typing import Dict, Union
 

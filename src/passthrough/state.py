@@ -5,7 +5,7 @@ from lxml import etree
 
 from . import PT_NS
 from .exc import PTEvalError, PTStateError, PTSyntaxError, PTTemplateError
-from .label import add_default_ns
+from .label_tools import add_default_ns
 
 Property = namedtuple("Property", ("default", "inherit", "types"))
 

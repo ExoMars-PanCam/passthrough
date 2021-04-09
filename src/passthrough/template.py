@@ -6,7 +6,7 @@ from lxml import etree
 
 from . import ext, util
 from .exc import PTFetchError, PTTemplateError
-from .label import (
+from .label_tools import (
     ATTR_PATHS,
     LabelLike,
     add_default_ns,
