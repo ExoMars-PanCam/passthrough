@@ -163,7 +163,6 @@ class Template:
                         f" source {state.exp['sources']} from {source_file}",
                         t_elem,
                     )
-                # if not state["keep"]:
                 t_elem.getparent().remove(t_elem)
                 return
             elif not len(t_elem):  # len(s_elems) == 1:
@@ -171,7 +170,7 @@ class Template:
                 t_elem.text = s_elems[0].text
         else:
             if isinstance(state["multi"], int) and state["multi"] > 1:
-                self._process_multi_branch(t_elem, parent_state, state["multi"])
+                self._process_multi_branch(t_elem, parent_state, state["multi"] - 1)
                 return
             # non-fetch required condition; should be evaluated at export
             if state.exp["required"] is not None:
