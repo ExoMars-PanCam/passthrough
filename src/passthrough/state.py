@@ -127,7 +127,8 @@ class PTState(UserDict):
             val = self["sources"].primary.xpath(self.exp[kw], namespaces=self.nsmap)
         except etree.XPathError as e:
             raise PTEvalError(
-                f"{self._exp_str(kw)} resulted in {e.__name__}: {e}", self.t_elem
+                f"{self._exp_str(kw)} resulted in {e.__class__.__name__}: {e}",
+                self.t_elem,
             ) from None  # e
         self[kw] = self._conform_xpath_result(kw, val)
 
