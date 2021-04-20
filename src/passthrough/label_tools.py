@@ -10,7 +10,7 @@ __all__ = [
 ]
 
 from pathlib import Path
-from typing import Dict, Union
+from typing import Dict, Optional, Union
 
 from lxml import etree
 
@@ -65,7 +65,7 @@ def labellike_to_etree(labellike: LabelLike) -> etree._ElementTree:
     )
 
 
-def add_default_ns(nsmap: Dict[str, Union[str, None]]) -> Dict[str, str]:
+def add_default_ns(nsmap: Dict[Optional[str], str]) -> Dict[str, str]:
     nsmap[PDS_NS_PREFIX] = nsmap[None]
     del nsmap[None]
     return nsmap
