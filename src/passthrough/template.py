@@ -183,28 +183,45 @@ class Template:
             if state["defer"]:
                 self._deferred_fills.append(state)
             else:
-                t_elem.text = state.eval_deferred("fill")
+                self._handle_fill(state.t_elem, state.eval_deferred("fill"))
 
         state.remove_elem_pt_attrs()
 
-    def _process_multi_branch(self, elem, parent_state, num_duplicates):
+    def _process_multi_branch(self, elem, parent_state, num_copies):
         # prevent multi expectation on sibling passes
         del elem.attrib[util.pt_clark("multi")]
-        siblings = [deepcopy(elem) for _ in range(num_duplicates)]
+        siblings = [deepcopy(elem) for _ in range(num_copies)]
         parent = elem.getparent()
         # insert the siblings after t_elem in document order to keep it tidy
         idx = parent.index(elem) + 1
-        for sibling in siblings:
+        for sibling in reversed(siblings):  # reverse to counteract insert order
             parent.insert(idx, sibling)
         # recurse to t_elem also to keep the logic of this branch simple
-        for elem in (elem, *siblings):
+        pmb = parent_state["multi_branch"]
+        for i, elem in enumerate((elem, *siblings)):
+            parent_state["multi_branch"] = i
             self._process_elem(parent_state, elem)
+        parent_state["multi_branch"] = pmb
 
     def _eval_deferred_fills(self):
         for state in self._deferred_fills:
             self.extensions.set_elem_context(state.t_elem)
-            state.t_elem.text = state.eval_deferred("fill")
+            self._handle_fill(state.t_elem, state.eval_deferred("fill"))
         self._deferred_fills = []
+
+    @staticmethod
+    def _handle_fill(elem, filler):
+        print(f"is_populated ({elem}): {is_populated(elem)}")
+        if is_populated(elem):
+            segments = elem.text.split("{}")  # TODO: put in package level variable
+            print(segments)
+            if len(segments) == 2:
+                filler = filler.join(segments)  # sub in filler
+            elif len(segments) > 2:
+                raise PTTemplateError(
+                    f"Multiple fill substitution tokens are not yet supported", elem
+                )
+        elem.text = filler
 
     def _prune_empty_optionals(self):
         # evaluate requireds inside-out to allow nested statements

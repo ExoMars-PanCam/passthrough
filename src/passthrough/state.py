@@ -40,6 +40,7 @@ class PTState(UserDict):
             ("required", Property(default=True, inherit=True, types=(bool,))),
             ("fill", Property(default=None, inherit=False, types=(str,))),
             ("defer", Property(default=False, inherit=False, types=(bool,))),
+            ("multi_branch", Property(default=None, inherit=True, types=(int,))),
         ]
     )
 
@@ -136,19 +137,23 @@ class PTState(UserDict):
         if isinstance(val, self._PROPERTIES[kw].types):
             return val
         if isinstance(val, list):
+            idx = 0
             if not len(val):
                 raise PTEvalError(
                     f"{self._exp_str(kw)} evaluation yielded an empty node-set",
                     self.t_elem,
                 )
             elif len(val) > 1:
-                raise PTEvalError(
-                    f"{self._exp_str(kw)} evaluation yielded multiple results: {val}",
-                    self.t_elem,
-                )
-            else:
-                # try unwrapping the result (e.g. result of '*/text()')
-                return self._conform_xpath_result(kw, val[0])
+                if self["multi_branch"] is not None and kw == "fill":
+                    idx = self["multi_branch"]
+                else:
+                    raise PTEvalError(
+                        f"{self._exp_str(kw)} evaluation yielded multiple results:"
+                        f" {val}",
+                        self.t_elem,
+                    )
+            # try unwrapping the result (e.g. result of './text()')
+            return self._conform_xpath_result(kw, val[idx])
         # XPath returns ints as floats;
         if int in self._PROPERTIES[kw].types and isinstance(val, float):
             val = int(val)

@@ -418,8 +418,12 @@ Please refer to the Poetry documentation for further information on its usage.
 - [ ] If needed: the ability to add element XML attributes via the template (likely not needed?)
 - [ ] Support for no-default-prefix XPath expressions via internal substitution (supporting XPath predicates etc. will
   require a tokenizer/parser be built, which is low on the priority list).
+- [x] Add support for multi-fill (fill node in node-set based on which multi branch context node belongs to)
+- [x] Add support for fill string formatting (if node is populated and contains a {}-pair, substitute in fill result)
 
 ## ToDo (readme)
 - Mention how structure checking is useful for processor testing and manual generation, but can be turned off for performance
 - Mention how although the reference implementation is in Python, the API and use of XPath makes it easy to port to 
 other languages.
+- Mention how to use fill with node-sets in a multi context
+- Mention how to use fill formatting
