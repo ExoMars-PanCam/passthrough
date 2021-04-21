@@ -28,14 +28,14 @@ else:
 
 PDS_NS_PREFIX = "pds"
 
-# Common PDS4/ExoMars/PanCam attribute XPaths
+# Common PDS4 attribute XPath shorthands
 ATTR_PATHS = {
     "lid": "//pds:Identification_Area/pds:logical_identifier",
     "start": "//pds:Time_Coordinates/pds:start_date_time",
     "stop": "//pds:Time_Coordinates/pds:stop_date_time",
-    "type": "//msn:Mission_Information/msn:product_type_name",
-    "sub_instrument": "//psa:Sub-Instrument/psa:identifier",
-    "exposure_duration": "//img:Exposure/img:exposure_duration",
+    # "type": "//msn:Mission_Information/msn:product_type_name",
+    # "sub_instrument": "//psa:Sub-Instrument/psa:identifier",
+    # "exposure_duration": "//img:Exposure/img:exposure_duration",
 }
 
 
