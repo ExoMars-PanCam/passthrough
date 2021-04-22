@@ -3,19 +3,13 @@ from typing import MutableMapping, Optional
 
 from lxml import etree
 
-from .. import PT_EXT_URI_BASE
+from .. import PT_EXT_URI_BASE, importlib_metadata
 
 
 def get_extensions():  # -> MutableMapping[str, ModuleType]:
     """ Return a dict of all installed extension modules as {prefix: module}. """
-    # plugins = importlib_metadata.entry_points(group="passthrough.extensions")
-    # return {extension.name: extension for extension in extensions}
-    # TODO: half-way waypoint implementation; change to above importlib based approach
-    from . import exm, file, pt
-
-    return {
-        extension.__name__.split(".")[-1]: extension for extension in (pt, file, exm)
-    }
+    extensions = importlib_metadata.entry_points(group="passthrough.extensions")
+    return {extension.name: extension.load() for extension in extensions}
 
 
 class ExtensionManager:

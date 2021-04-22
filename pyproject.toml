@@ -34,6 +34,11 @@ isort = "^5.8.0"
 #[tool.poetry.scripts]
 #pttesting = "passthrough.testing.pttesting:cli"  # temporary arrangement pre pytest
 
+[tool.poetry.plugins."passthrough.extensions"]
+"exm" = "passthrough.extensions.exm"
+"file" = "passthrough.extensions.file"
+"pt" = "passthrough.extensions.pt"
+
 [tool.black]
 line-length = 88
 target-version = ['py36']
