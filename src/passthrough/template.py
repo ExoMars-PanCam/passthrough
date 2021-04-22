@@ -4,11 +4,14 @@ from typing import Dict, Optional, Sequence, Union
 
 from lxml import etree
 
-from . import ext, util
+from . import PT_NS
 from .exc import PTFetchError, PTTemplateError
+from .extensions import ExtensionManager
+from .extensions.pt import context
 from .label_tools import (
     ATTR_PATHS,
     LabelLike,
+    PathManipulator,
     add_default_ns,
     is_populated,
     labellike_to_etree,
@@ -44,16 +47,8 @@ class Template:
         self.root = self.label.getroot()
         self.nsmap = add_default_ns(self.root.nsmap)
 
-        self.context_map = ext.Context(context_map)
-        builtin_extensions = [
-            ext.self,
-            ext.vid_increment,
-            ext.lid_to_browse_lid,
-            ext.datetime_inc,
-            self.context_map.context,
-        ]
-        self.extensions = ext.XPathExtensionManager()
-        self.extensions.register(builtin_extensions)
+        context.set_context_map(context_map)
+        self._ext = ExtensionManager()
 
         self._deferred_fills = []
         self._deferred_reqs = []
@@ -107,14 +102,14 @@ class Template:
     def _process_elem(self, parent_state: PTState, t_elem: etree._Element):
         if isinstance(t_elem, etree._Comment):
             return
-        self.extensions.set_elem_context(t_elem)
+        self._ext.set_elem_context(t_elem)
         qname = etree.QName(t_elem.tag)
         state = PTState(parent_state, t_elem)
 
         # duplicate subtree for each source
         if len(state["sources"].secondary):
             # prevent triggering this processing branch on sibling passes
-            del t_elem.attrib[util.pt_clark("sources")]
+            del t_elem.attrib[self._pt_clark("sources")]
             # We temporarily detach the t_elem subtree and insert each elem subtree at
             # the original location of t_elem before populating, which ensures that
             # resolved paths are always in the form /path/to/elem[1]/child, which will
@@ -189,7 +184,7 @@ class Template:
 
     def _process_multi_branch(self, elem, parent_state, num_copies):
         # prevent multi expectation on sibling passes
-        del elem.attrib[util.pt_clark("multi")]
+        del elem.attrib[self._pt_clark("multi")]
         siblings = [deepcopy(elem) for _ in range(num_copies)]
         parent = elem.getparent()
         # insert the siblings after t_elem in document order to keep it tidy
@@ -205,7 +200,7 @@ class Template:
 
     def _eval_deferred_fills(self):
         for state in self._deferred_fills:
-            self.extensions.set_elem_context(state.t_elem)
+            self._ext.set_elem_context(state.t_elem)
             self._handle_fill(state.t_elem, state.eval_deferred("fill"))
         self._deferred_fills = []
 
@@ -227,7 +222,7 @@ class Template:
         # evaluate requireds inside-out to allow nested statements
         # (e.g. for optional class with optional children)
         for state in reversed(self._deferred_reqs):
-            self.extensions.set_elem_context(state.t_elem)
+            self._ext.set_elem_context(state.t_elem)
             required = state.eval_deferred("required")
             if not required:
                 pop = empty = False
@@ -295,7 +290,7 @@ class Template:
                     record.append((elem.tag, path))
 
         if len(added) or len(removed):
-            pm = util.PathManipulator(
+            pm = PathManipulator(
                 self.nsmap
             )  # FIXME: issue if label nsmaps have gone out of sync; merge?
             msg = [
@@ -310,3 +305,7 @@ class Template:
                             f"{pm.clark_to_prefix(tag)} @ {pm.clark_to_prefix(path)}"
                         )
             raise PTTemplateError("\n".join(msg))
+
+    @staticmethod
+    def _pt_clark(property: str):
+        return f"{{{PT_NS['uri']}}}{property}"
