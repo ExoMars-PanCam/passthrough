@@ -16,25 +16,30 @@ class PDSDatetime:
 
     def __init__(
         self,
-        date_string: str,
-        format_: Optional[str],
+        date_string: Optional[str],
+        format_: Optional[str] = None,
         decimals: Optional[int] = None,
     ):
-        if not isinstance(date_string, str):
-            raise TypeError(f"Expected string, not {type(date_string)}")
         if not format_:
             format_ = self.LABEL_FORMAT
         self.format = format_
-        self.datetime = datetime.strptime(date_string, self.format)
 
-        if decimals is not None and decimals >= 0:
-            self.decimals = int(decimals)
-        elif ".%f" in format_:
-            self.decimals = len(date_string) - date_string.index(".") - 1
-            if date_string[-1].lower() == "z":
-                self.decimals -= 1
+        if date_string is None:
+            self.datetime = datetime.utcnow()
+        elif not isinstance(date_string, str):
+            raise TypeError(f"Expected string, not {type(date_string)}")
         else:
-            self.decimals = None
+            self.datetime = datetime.strptime(date_string, self.format)
+
+        if ".%f" not in self.format:
+            decimals = None
+        elif decimals is not None:
+            decimals = max(0, int(decimals))
+        elif date_string is not None:
+            decimals = len(date_string[date_string.index(".") + 1 :])
+            if date_string[-1].lower() == "z":
+                decimals -= 1
+        self.decimals = decimals
 
     def __str__(self):
         result = self.datetime.strftime(self.format)
@@ -43,9 +48,9 @@ class PDSDatetime:
             if result[-1].lower() == "z":
                 z = result[-1]
                 result = result[:-1]
-            # %f always yields / accepts up to 6 decimal places
-            result = result[: -(6 - self.decimals)] or result
-
+            result = result[: result.index(".") + self.decimals + 1]
+            if result.endswith("."):
+                result = result[:-1]
         return f"{result}{z or ''}"
 
     def add_delta(self, delta: Union[str, float, int], unit: str = "s"):
@@ -61,8 +66,7 @@ class PDSDatetime:
         self.datetime = self.datetime + timedelta(seconds=delta)
 
 
-# TODO: rename to datetime_add
-def datetime_inc(
+def datetime_add(
     t_elem,
     __,
     timestamp: etree._Element,
@@ -71,16 +75,15 @@ def datetime_inc(
     decimals: Optional[int] = None,
 ):
     try:
-        time = PDSDatetime(timestamp[0].text, format_, decimals)
+        dt = PDSDatetime(timestamp[0].text, format_, decimals)
     except ValueError as e:
         raise PTEvalError(f"unable to parse datetime: {e}", t_elem) from None
     try:
-        time.add_delta(delta[0].text, unit=delta[0].attrib["unit"])
+        dt.add_delta(delta[0].text, unit=delta[0].attrib["unit"])
     except ValueError as e:
         raise PTEvalError(f"unable to add delta: {e}", t_elem) from None
-    return str(time)
+    return str(dt)
 
 
-def datetime_now(_, __):
-    # TODO:
-    pass
+def datetime_now(_, __, format_: Optional[str] = None, decimals: Optional[int] = None):
+    return str(PDSDatetime(None, format_, decimals))
