@@ -206,10 +206,8 @@ class Template:
 
     @staticmethod
     def _handle_fill(elem, filler):
-        print(f"is_populated ({elem}): {is_populated(elem)}")
         if is_populated(elem):
             segments = elem.text.split("{}")  # TODO: put in package level variable
-            print(segments)
             if len(segments) == 2:
                 filler = filler.join(segments)  # sub in filler
             elif len(segments) > 2:
