@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "passthrough"
-version = "0.1.1"
+version = "0.2.0"
 description = "Passthrough - PDS4 label template system"
 authors = ["Ariel Ladegaard <arl13@aber.ac.uk>"]
 license = "MIT"
