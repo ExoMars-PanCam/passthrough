@@ -15,6 +15,7 @@ del _dist_meta
 
 PT_NS = {"prefix": "pt", "uri": __url__}
 PT_EXT_URI_BASE = f"{__url__}/extensions"
+FILL_TOKEN = "{}"
 
 from . import exc, extensions, label_tools
 from .template import Template
