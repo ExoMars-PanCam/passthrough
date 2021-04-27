@@ -1,0 +1,189 @@
+/* Kluges to set up the landing page documentation quadrants */
+.pt-column2 {
+    float: left;
+    width: 50%;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+.pt-column2 h3 { margin-top: 0.8em; }
+.pt-clear { clear: both; }
+.pt-invisible { visibility: hidden; }
+
+/* bring warning admonition in line with mars theme (partial...) */
+.md-typeset .admonition.warning { border-color: var(--md-primary-fg-color) }
+
+/*Theme overrides - mostly in terms of colours, but also some code highlight refinements*/
+@media screen {
+    [data-md-color-scheme="mars"] {
+        --md-primary-hue: 27;
+        --md-primary-fg-color: hsla(var(--md-primary-hue), 80%, 42%, 1);
+        --md-primary-fg-color--light: hsla(var(--md-primary-hue), 100%, 70%, 1);
+        --md-primary-fg-color--dark: hsla(var(--md-primary-hue), 91%, 54%, 1);
+        --md-primary-bg-color: #fff;
+        --md-primary-bg-color--light: hsla(0, 0%, 100%, 0.7);
+        --md-accent-fg-color: hsla(var(--md-primary-hue), 90%, 50%, 1);
+        --md-accent-fg-color--transparent: hsla(var(--md-primary-hue), 100%, 50%, 0.1);
+        --md-accent-bg-color: hsla(0, 0%, 100%, 0.87);
+        --md-accent-bg-color--light: hsla(0, 0%, 100%, 0.54);
+
+        --md-hue: 232;
+
+        /* Default color shades*/
+        --md-default-fg-color: hsla(var(--md-primary-hue), 75%, 95%, 1);
+        --md-default-fg-color--light: hsla(var(--md-primary-hue), 75%, 95%, 0.72);
+        --md-default-fg-color--lighter: hsla(var(--md-primary-hue), 75%, 95%, 0.42);
+        --md-default-fg-color--lightest: hsla(var(--md-primary-hue), 75%, 95%, 0.22);
+        --md-default-bg-color: hsla(var(--md-hue), 15%, 21%, 1);
+        --md-default-bg-color--light: hsla(var(--md-hue), 15%, 21%, 0.54);
+        --md-default-bg-color--lighter: hsla(var(--md-hue), 15%, 21%, 0.26);
+        --md-default-bg-color--lightest: hsla(var(--md-hue), 15%, 21%, 0.07);
+        --md-default-bg-color--dark: hsla(var(--md-hue), 15%, 15%, 0.54); /* ADD */
+
+        /* Typeset color shades*/
+        --md-typeset-color: var(--md-default-fg-color);
+        --md-typeset-a-color: var(--md-primary-fg-color);
+
+        /* Typeset `mark` color shades*/
+        /*--md-typeset-mark-color: hsla(#{hex2hsl($clr-blue-a200)}, 0.3);*/
+
+        /* Typeset `kbd` color shades*/
+        --md-typeset-kbd-color: hsla(var(--md-hue), 15%, 94%, 0.12);
+        --md-typeset-kbd-accent-color: hsla(var(--md-hue), 15%, 94%, 0.2);
+        --md-typeset-kbd-border-color: hsla(var(--md-hue), 15%, 14%, 1);
+
+        /* Admonition color shades*/
+        --md-admonition-bg-color: hsla(var(--md-hue), 0%, 100%, 0.025);
+
+        /* Footer color shades*/
+        --md-footer-bg-color: hsla(var(--md-hue), 15%, 12%, 0.87);
+        --md-footer-bg-color--dark: hsla(var(--md-hue), 15%, 10%, 1);
+
+        /*! Darcula theme by JetBrains, coerced to work with at least python and xml*/
+        --md-code-fg-color: var(--md-default-fg-color);
+        --md-code-bg-color: var(--md-default-bg-color--dark);
+        --md-code-hl-color: var(--md-default-bg-color); /* FIXME: unsure where this is used */
+        --md-code-hl-operator-color: var(--md-code-fg-color); /* +-=/ */
+        --md-code-hl-operator-word-color: var(--md-code-hl-keyword-color); /* not and or */
+        --md-code-hl-punctuation-color: var(--md-code-fg-color);
+        --md-code-hl-string-color: rgb(98, 151, 85); /*str*/
+        --md-code-hl-special-color: var(--md-code-hl-keyword-color); /* "some\nthing"*/
+        --md-code-hl-number-color: rgb(104, 151, 187); /*num*/
+        --md-code-hl-keyword-color: rgb(204, 120, 50); /* def/if/for */
+        --md-code-hl-name-color: var(--md-code-fg-color); /* variables */
+        --md-code-hl-constant-color: rgb(136, 136, 198); /* builtins, not constants... */
+        --md-code-hl-pseudo-color: rgb(148, 85, 141); /* self */
+        --md-code-hl-function-color: rgb(255, 198, 109); /* foo() */
+        --md-code-hl-decorator-color: rgb(187, 181, 41); /* @something */
+        --md-code-hl-comment-color: rgb(128, 128, 128); /*  # comment */
+        --md-code-hl-variable-color: var(--md-code-fg-color);
+        --md-code-hl-generic-color: var(--md-code-fg-color);
+        --md-code-hl-dunder-color: rgb(178, 0, 178); /* ADD */
+    }
+}
+
+/* Code block */
+.highlight .o    /* Operator */
+{ color: var(--md-code-hl-operator-color); }
+
+.highlight .ow   /* Operator, word */
+{ color: var(--md-code-hl-operator-word-color); } /* MOD */
+
+.highlight .p    /* Punctuation */
+{ color: var(--md-code-hl-punctuation-color); }
+
+.highlight .cpf, /* Comment, preprocessor file */
+.highlight .l,   /* Literal */
+.highlight .s,   /* Literal, string */
+.highlight .sa,  /* Literal.String.??? - f in f"some{thing}" MOD */
+.highlight .sb,  /* Literal, string backticks */
+.highlight .sc,  /* Literal, string char */
+.highlight .s2,  /* Literal, string double */
+.highlight .s1,  /* Literal, string single */
+.highlight .ss   /* Literal, string symbol */
+{ color: var(--md-code-hl-string-color); }
+
+.highlight .sd   /* Literal, string doc */
+{ color: var(--md-code-hl-string-color); font-style: italic } /* MOD */
+
+.highlight .cp,  /* Comment, pre-processor */
+.highlight .se,  /* Literal, string escape */
+.highlight .sh,  /* Literal, string heredoc */
+.highlight .sr,  /* Literal, string regex */
+.highlight .sx   /* Literal, string other */
+{ color: var(--md-code-hl-special-color); }
+
+.highlight .m,   /* Number */
+.highlight .mb,  /* Number, binary */
+.highlight .mf,  /* Number, float */
+.highlight .mh,  /* Number, hex */
+.highlight .mi,  /* Number, integer */
+.highlight .il,  /* Number, integer long */
+.highlight .mo   /* Number, octal */
+{ color: var(--md-code-hl-number-color); }
+
+.highlight .si,  /* Literal, string interpol MOD: moved */
+.highlight .k,   /* Keyword, */
+.highlight .kc,  /* Keyword, constant MOD: moved */
+.highlight .kd,  /* Keyword, declaration */
+.highlight .kn,  /* Keyword, namespace */
+.highlight .kp,  /* Keyword, pseudo */
+.highlight .kr,  /* Keyword, reserved */
+.highlight .kt   /* Keyword, type */
+{ color: var(--md-code-hl-keyword-color); }
+
+.highlight .h,   /* Name? MOD:?*/
+.highlight .n,    /* Name */
+.highlight .nn   /* Name, namespace MOD: moved from funcs */
+{ color: var(--md-code-hl-name-color); }
+
+.highlight .no,  /* Name, constant */
+.highlight .nb   /* Name, builtin */
+{ color: var(--md-code-hl-constant-color); }
+
+.highlight .bp   /* Name, builtin pseudo */
+{ color: var(--md-code-hl-pseudo-color); }
+
+.highlight .nc,  /* Name, class */
+.highlight .ne,  /* Name, exception */
+.highlight .nf,  /* Name, function */
+.highlight .nt   /* Name, tag  MOD: for XML */
+{ color: var(--md-code-hl-function-color); }
+
+.highlight .ni,  /* Name, entity */
+.highlight .nl  /* Name, label */
+{ color: var(--md-code-hl-keyword-color); }
+
+.highlight .nd  /* Name, decorator */
+{ color: var(--md-code-hl-decorator-color); }
+
+.highlight .c,   /* Comment */
+.highlight .cm,  /* Comment, multiline */
+.highlight .c1,  /* Comment, single */
+.highlight .ch,  /* Comment, shebang */
+.highlight .cs   /* Comment, special */
+{ color: var(--md-code-hl-comment-color); }
+
+.highlight .na,  /* Name, attribute */
+.highlight .nv,  /* Variable, */
+.highlight .vc,  /* Variable, class */
+.highlight .vg,  /* Variable, global */
+.highlight .vi   /* Variable, instance */
+{ color: var(--md-code-hl-variable-color); }
+
+.highlight .ge,  /* Generic, emph */
+.highlight .gr,  /* Generic, error */
+.highlight .gh,  /* Generic, heading */
+.highlight .go,  /* Generic, output */
+.highlight .gp,  /* Generic, prompt */
+.highlight .gs,  /* Generic, strong */
+.highlight .gu,  /* Generic, subheading */
+.highlight .gt   /* Generic, traceback */
+{ color: var(--md-code-hl-generic-color); }
+
+.highlight .fm,  /* Function, magic */
+.highlight .vm   /* Variable, magic */
+{ color: var(--md-code-hl-dunder-color); } /* ADD */
+
+/*.md-typeset table:not([class]) th {*/
+/*    background-color: var(--md-primary-fg-color);*/
+/*}*/
