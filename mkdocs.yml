@@ -1,0 +1,95 @@
+# Project Information
+site_name: Passthrough
+site_url: https://ExoMars-PanCam.github.io/passthrough
+site_author: Ariel Ladegaard
+site_description: >-
+  Template-driven PDS4 data product generation for Python processors and analysis tools.
+
+# Repository
+repo_name: passthrough
+repo_url: https://github.com/ExoMars-PanCam/passthrough
+edit_uri: ""
+
+# Configuration
+theme:
+  name: material
+  custom_dir: docs/overrides  # to allow "visibility: hidden" on sidebars via meta ext
+  font:
+    text: Fira Sans
+    code: Fira Code
+  icon:
+    repo: fontawesome/brands/github
+    logo: fontawesome/solid/project-diagram  # temporary - replace w/ logo
+#  logo: assets/logo.png
+#  favicon: images/favicon.png
+  palette:
+    scheme: mars
+  features:
+    - navigation.tabs
+#    - navigation.sections
+    - navigation.expand
+#    - toc.integrate
+
+plugins:
+  - search
+#  - git-revision-date
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          rendering:
+#            show_root_heading: true
+            show_root_toc_entry: false
+#            show_root_full_path: false
+#            show_object_full_path: true
+#            show_root_members_full_path: true
+#            show_category_heading: true
+            show_if_no_docstring: true
+#            show_signature_annotations: true
+#            show_source: false
+            group_by_category: false
+            heading_level: 3
+          selection:
+            filters:
+              - "!^_"  # exclude all members starting with _
+              - "^__init__$"  # but always include __init__ modules and methods
+      watch:
+        - src/passthrough
+
+extra_css:
+  - stylesheets/extra.css
+
+# Extensions
+markdown_extensions:
+  - admonition  # callouts
+  - abbr  # on-hover abbreviation tooltips
+  - pymdownx.superfences  # code in admonitions (nested blocks)
+  - pymdownx.details  # collapsible admonitions
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+#  - pymdownx.tabbed
+#  - attr_list
+#  - def_list
+  - footnotes
+  - meta  #  yaml preamble to selectively hide sidebars
+  - md_in_html  # needed for landing page section quadrant links
+
+# Page tree
+nav:
+  - Home: index.md
+  - Getting started:
+      - Installation: get-started/installation.md
+      - Creating a template: get-started/tutorial-creating.md
+      - Using your template: get-started/tutorial-using.md
+      - Next steps: get-started/next-steps.md
+  - How-to guides:
+      - How to...: how-to/how-to.md
+      - Inheriting from multiple sources: how-to/multi-source-inheritance.md
+      - String substitution with fill: how-to/fill-format.md
+  - Reference:
+      - Python API: reference/python-api.md
+      - Type template language: reference/ptl-spec.md
+      - Extension API: reference/extension-api.md
+  - Background:
+      - Use cases: background/use-cases.md
+  - About: about.md
