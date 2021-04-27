@@ -114,7 +114,7 @@ class ProductLIDFormatter:
         return ":".join(field_list)
 
 
-def lid_to_browse(_, __, lid_string: Union[str, List[etree._Element]]):
+def lid_to_browse(_, lid_string: Union[str, List[etree._Element]]):
     if not isinstance(lid_string, str):
         lid_string = lid_string[0].text  # TODO: complain if len > 1 or type not _Elem
     lid = ProductLIDFormatter(lid_string)

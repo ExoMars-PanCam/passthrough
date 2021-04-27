@@ -27,7 +27,7 @@ class VID:
         )
 
 
-def vid_increment(t_elem, _):
-    vid = VID(from_string=t_elem.text)
+def vid_increment(ctx):
+    vid = VID(from_string=ctx.t_elem.text)
     vid.increment("minor")
     return str(vid)
