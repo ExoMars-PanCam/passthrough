@@ -4,8 +4,11 @@ from typing import List, Union
 
 from lxml import etree
 
+from ...exc import PTEvalError
+from ...label_tools import ATTR_PATHS
 from ..pt.datetime import PDSDatetime
 from ..pt.vid import VID
+from . import ATTR_PATHS_EXM
 
 LID_DATETIME_FORMAT = "%Y%m%dt%H%M%S.%fz"
 
@@ -126,3 +129,23 @@ def lid_to_browse(_, lid_string: Union[str, List[etree._Element]]):
         )
     lid.fields["collection_id"] = "_".join(["browse", parts[-1]])
     return str(lid)
+
+
+def lid_subunit(ctx):
+    type_ = ctx.t_xpath(ATTR_PATHS_EXM["type"])[0].text
+    if type_ == "spec-rad":
+        pp_200b_lid = ctx.s_xpath(ATTR_PATHS["lid"])[0].text
+        subunit = ProductLIDFormatter(pp_200b_lid).fields["product_id"]["subunit"]
+    else:
+        raise PTEvalError(f"unrecognised product type '{type_}'", ctx.t_elem)
+    return subunit
+
+
+def lid_time(ctx):
+    type_ = ctx.t_xpath(ATTR_PATHS_EXM["type"])[0].text
+    if type_ == "spec-rad":
+        pp_200b_lid = ctx.s_xpath(ATTR_PATHS["lid"])[0].text
+        time = str(ProductLIDFormatter(pp_200b_lid).fields["product_id"]["time"][0])
+    else:
+        raise PTEvalError(f"unrecognised product type '{type_}'", ctx.t_elem)
+    return time
