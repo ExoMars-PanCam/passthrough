@@ -1,25 +1,31 @@
-def file_size(ctx):
+def size(ctx):
     # TODO: inspect t_elem's unit to ensure return is in appropriate units
-    pass
+    return "TODO"
 
 
-def file_offset(ctx):
+def offset(ctx):
     # TODO: offset of structure described by t_elem's parent
-    pass
+    return "TODO"
 
 
-def file_md5(ctx):
+def md5(ctx):
     # TODO: discern file object responsible for t_elem's grand parent and query it
-    pass
+    return "TODO"
 
 
-def file_datetime(ctx):
+def datetime(ctx):
     # TODO: discern file object responsible for t_elem's grand parent and query it
-    pass
+    return "TODO"
+
+
+def path(ctx):
+    return "TODO"
 
 
 functions = {
-    file_size.__name__.replace("_", "."): file_size,
-    file_offset.__name__.replace("_", "."): file_offset,
-    file_md5.__name__.replace("_", "."): file_md5,
+    size.__name__: size,
+    offset.__name__: offset,
+    md5.__name__: md5,
+    datetime.__name__: datetime,
+    path.__name__: path,
 }
