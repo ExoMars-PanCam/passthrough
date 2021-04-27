@@ -78,7 +78,7 @@ class PTState(UserDict):
         if None not in (parent, self.t_elem):
             self._validate_state(parent)
 
-    def eval_deferred(self, prop) -> str:
+    def eval_deferred(self, prop: str) -> Union[str, list]:
         self._eval_prop(prop, deferred=True)
         return self[prop]
 
@@ -137,23 +137,22 @@ class PTState(UserDict):
         if isinstance(val, self._PROPERTIES[kw].types):
             return val
         if isinstance(val, list):
-            idx = 0
+            if len(val) == 1:
+                # try unwrapping the result (e.g. result of './text()')
+                return self._conform_xpath_result(kw, val[0])
             if not len(val):
                 raise PTEvalError(
                     f"{self._exp_str(kw)} evaluation yielded an empty node-set",
                     self.t_elem,
                 )
-            elif len(val) > 1:
-                if self["multi_branch"] is not None and kw == "fill":
-                    idx = self["multi_branch"]
-                else:
-                    raise PTEvalError(
-                        f"{self._exp_str(kw)} evaluation yielded multiple results:"
-                        f" {val}",
-                        self.t_elem,
-                    )
-            # try unwrapping the result (e.g. result of './text()')
-            return self._conform_xpath_result(kw, val[idx])
+            if kw != "fill":
+                raise PTEvalError(
+                    f"{self._exp_str(kw)} evaluation yielded multiple results: {val}",
+                    self.t_elem,
+                )
+            if self["multi_branch"] is not None:
+                return self._conform_xpath_result(kw, val[self["multi_branch"]])
+            return [self._conform_xpath_result(kw, v) for v in val]
         # XPath returns ints as floats;
         if int in self._PROPERTIES[kw].types and isinstance(val, float):
             val = int(val)

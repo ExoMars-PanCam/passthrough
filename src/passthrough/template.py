@@ -4,8 +4,8 @@ from typing import Dict, Optional, Sequence, Union
 
 from lxml import etree
 
-from . import PT_NS
-from .exc import PTFetchError, PTTemplateError
+from . import FILL_TOKEN, PT_NS
+from .exc import PTEvalError, PTFetchError, PTTemplateError
 from .extensions import ExtensionManager
 from .extensions.pt import context
 from .label_tools import (
@@ -205,16 +205,35 @@ class Template:
         self._deferred_fills = []
 
     @staticmethod
-    def _handle_fill(elem, filler):
-        if is_populated(elem):
-            segments = elem.text.split("{}")  # TODO: put in package level variable
-            if len(segments) == 2:
-                filler = filler.join(segments)  # sub in filler
-            elif len(segments) > 2:
-                raise PTTemplateError(
-                    f"Multiple fill substitution tokens are not yet supported", elem
+    def _handle_fill(elem: etree._Element, val: Union[str, list]):
+        if not isinstance(val, list):
+            val = [val]
+        text = elem.text if elem.text is not None else ""
+        num_tokens = text.count(FILL_TOKEN)
+        if not text or not num_tokens:
+            if len(val) == 1:
+                # TODO: log weak warning if existing text? e.g.:
+                # if len(text.strip()):
+                #     print(f"overwriting {text} with {val[0]}")
+                text = val[0]
+            else:
+                _issue = "is empty" if not text else "contains no format tokens"
+                raise PTEvalError(
+                    f"{PT_NS['prefix']}:fill yielded {len(val)} substitutions but the"
+                    f" element's text {_issue}",
+                    elem,
                 )
-        elem.text = filler
+        else:
+            if num_tokens != len(val):
+                _only = " only" if num_tokens < len(val) else ""
+                _s = "s" if len(val) > 1 else ""
+                raise PTEvalError(
+                    f"{PT_NS['prefix']}:fill yielded {len(val)} substitution{_s} but"
+                    f" the element's text{_only} contains {num_tokens} format tokens",
+                    elem,
+                )
+            text = elem.text.format(*val)
+        elem.text = text
 
     def _prune_empty_optionals(self):
         # evaluate requireds inside-out to allow nested statements
