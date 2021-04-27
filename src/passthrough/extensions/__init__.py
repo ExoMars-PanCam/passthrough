@@ -10,7 +10,15 @@ from ..label_tools import add_default_ns
 def get_extensions():  # -> MutableMapping[str, ModuleType]:
     """ Return a dict of all installed extension modules as {prefix: module}. """
     extensions = importlib_metadata.entry_points(group="passthrough.extensions")
-    return {extension.name: extension.load() for extension in extensions}
+    # FIXME: kluge. Passthrough doesn't register its entry points if installed in dev
+    #  mode in another project (e.g. with poetry and develop=true)
+    if not len(extensions):
+        from . import exm, file, pt
+
+        extensions = {"pt": pt, "exm": exm, "file": file}
+    else:
+        extensions = {extension.name: extension.load() for extension in extensions}
+    return extensions
 
 
 class ExtensionManager:
@@ -19,11 +27,6 @@ class ExtensionManager:
         self.function_namespaces: MutableMapping[str, etree.FunctionNamespace] = {}
 
         extensions = get_extensions()
-        extensions = {
-            "pt": extensions["pt"],
-            "exm": extensions["exm"],
-            "file": extensions["file"],
-        }
         for prefix, mod in extensions.items():
             if not hasattr(mod, "functions"):
                 raise AttributeError(
