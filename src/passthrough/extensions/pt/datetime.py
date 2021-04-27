@@ -67,8 +67,7 @@ class PDSDatetime:
 
 
 def datetime_add(
-    t_elem,
-    __,
+    ctx,
     timestamp: etree._Element,
     delta: etree._Element,
     format_: Optional[str] = None,
@@ -77,13 +76,13 @@ def datetime_add(
     try:
         dt = PDSDatetime(timestamp[0].text, format_, decimals)
     except ValueError as e:
-        raise PTEvalError(f"unable to parse datetime: {e}", t_elem) from None
+        raise PTEvalError(f"unable to parse datetime: {e}", ctx.t_elem) from None
     try:
         dt.add_delta(delta[0].text, unit=delta[0].attrib["unit"])
     except ValueError as e:
-        raise PTEvalError(f"unable to add delta: {e}", t_elem) from None
+        raise PTEvalError(f"unable to add delta: {e}", ctx.t_elem) from None
     return str(dt)
 
 
-def datetime_now(_, __, format_: Optional[str] = None, decimals: Optional[int] = None):
+def datetime_now(_, format_: Optional[str] = None, decimals: Optional[int] = None):
     return str(PDSDatetime(None, format_, decimals))

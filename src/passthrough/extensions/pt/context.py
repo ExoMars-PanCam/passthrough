@@ -12,16 +12,16 @@ def set_context_map(map_: dict):
     _context_map = map_
 
 
-def context_get(t_elem, _, key):
+def context_get(ctx, key):
     global _context_map
     key = _unpack(key)
     try:
         return _context_map[key]
     except KeyError:
-        raise PTEvalError(f"context entry '{key}' has not been registered", t_elem)
+        raise PTEvalError(f"context entry '{key}' has not been registered", ctx.t_elem)
 
 
-# def context_set(_, __, key, value):
+# def context_set(_, key, value):
 #     global _context_map
 #     key = _unpack(key)
 #     _context_map[key] = value
