@@ -67,7 +67,7 @@ class Template:
         etree.cleanup_namespaces(self.label)
         if filename is None:
             lid = self.label.xpath(ATTR_PATHS["lid"], namespaces=self.nsmap)[0].text
-            filename = f"{lid.split(':')[-1]}.xml"  # ExoMars/PSA specific
+            filename = f"{lid.split(':')[-1].strip()}.xml"  # ExoMars/PSA specific
         if not isinstance(directory, Path):
             directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
@@ -155,7 +155,7 @@ class Template:
                     )
                     raise PTFetchError(
                         f"{qname.localname} could not be located at path {path} in"
-                        f" source {state.exp['sources']} from {source_file}",
+                        f" source {state.exp['sources']} from {source_file}",  # FIXME: .exp is None in descendants where source is inherited...
                         t_elem,
                     )
                 t_elem.getparent().remove(t_elem)
