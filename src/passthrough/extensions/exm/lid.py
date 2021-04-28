@@ -34,7 +34,7 @@ class ProductLIDFormatter:
         self.fields = deepcopy(self.LID_STRUCTURE)
         self.vid = None
         if from_string is not None:
-            self.from_string(from_string)
+            self.from_string(from_string.strip())
 
     def from_string(self, lid: str):
         fields = lid.split("::")
