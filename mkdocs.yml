@@ -26,12 +26,13 @@ theme:
   features:
     - navigation.tabs
 #    - navigation.sections
-    - navigation.expand
+#    - navigation.expand
 #    - toc.integrate
 
 plugins:
   - search
 #  - git-revision-date
+  - section-index
   - mkdocstrings:
       default_handler: python
       handlers:
@@ -77,18 +78,29 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Getting started:
-      - Installation: get-started/installation.md
-      - Creating a template: get-started/tutorial-creating.md
-      - Using your template: get-started/tutorial-using.md
-      - Next steps: get-started/next-steps.md
+    - Installation: get-started/installation.md
+    - Generating a product label: get-started/tutorial-part-one.md
+    - Designing a type template: get-started/tutorial-part-two.md
+    - Next steps: get-started/next-steps.md
   - How-to guides:
-      - How to...: how-to/how-to.md
-      - Inheriting from multiple sources: how-to/multi-source-inheritance.md
-      - String substitution with fill: how-to/fill-format.md
+    - how-to/index.md
+    - Inheriting from multiple sources: how-to/multi-source-inheritance.md
+    - String substitution with fill: how-to/fill-format.md
   - Reference:
-      - Python API: reference/python-api.md
-      - Type template language: reference/ptl-spec.md
-      - Extension API: reference/extension-api.md
+    - reference/index.md
+    - Python API: reference/python-api.md
+    - Type template language:
+      - reference/ptl/index.md
+      - Passthrough properties:
+        - reference/ptl/properties/index.md
+        - "‣ sources": reference/ptl/properties/sources.md
+        - "‣ fetch": reference/ptl/properties/fetch.md
+        - "‣ required": reference/ptl/properties/required.md
+        - "‣ multi": reference/ptl/properties/multi.md
+        - "‣ fill": reference/ptl/properties/fill.md
+        - "‣ defer": reference/ptl/properties/defer.md
+      - XPath expressions: reference/ptl/xpath.md
+    - Extension API: reference/extension-api.md
   - Background:
-      - Use cases: background/use-cases.md
+    - Template processing: background/template-processing.md
   - About: about.md

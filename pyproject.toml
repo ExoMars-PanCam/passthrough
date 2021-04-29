@@ -34,6 +34,7 @@ mkdocs-material = "^7.1.3"
 mkdocstrings = "^0.15.0"
 
 #[tool.poetry.scripts]
+mkdocs-section-index = "^0.3.0"
 #pttesting = "passthrough.testing.pttesting:cli"  # temporary arrangement pre pytest
 
 [tool.poetry.plugins."passthrough.extensions"]
