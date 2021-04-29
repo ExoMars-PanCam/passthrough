@@ -32,17 +32,17 @@ Hit the ground running with Passthrough, and learn how you can leverage type tem
 in your own mission's product processors.
 </div>
 <div markdown="1" class="pt-column2">
-###[How-to guides](./how-to/how-to.md)
+###[How-to guides](./how-to/)
 Recipes addressing common use-cases and challenges you may encounter when creating 
 templates and generating labels. 
 </div>
 <div markdown="1" class="pt-column2 pt-clear">
-###[Background](background/use-cases.md)
+###[Background](background/template-processing.md)
 Explanation of the key concepts behind Passthrough, and how the system integrates with 
 the product generation flow.
 </div>
 <div markdown="1" class="pt-column2">
-###[Reference](./reference/python-api.md)
+###[Reference](./reference/)
 Technical description the Python `Template` handler, language syntax, and extensions.
 </div>
 <br class="pt-clear"/>
