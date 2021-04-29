@@ -19,9 +19,8 @@ theme:
     code: Fira Code
   icon:
     repo: fontawesome/brands/github
-    logo: fontawesome/solid/project-diagram  # temporary - replace w/ logo
-#  logo: assets/logo.png
-#  favicon: images/favicon.png
+    logo: pt_logo_d2
+  favicon: assets/images/favicon.png
   palette:
     scheme: mars
   features:
