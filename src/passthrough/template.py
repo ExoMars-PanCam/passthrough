@@ -1,10 +1,11 @@
+import logging
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
 from lxml import etree
 
-from . import FILL_TOKEN, PT_NS
+from . import FILL_TOKEN, PT_NS, __project__
 from .exc import PTEvalError, PTFetchError, PTTemplateError
 from .extensions import ExtensionManager
 from .extensions.pt import context
@@ -28,7 +29,16 @@ class Template:
         template_source_entry: bool = True,
         keep_template_comments: bool = False,
         skip_structure_check: bool = False,
+        quiet: Union[bool, int] = False,
     ):
+        log_level = (
+            (logging.ERROR if quiet else logging.INFO)
+            if isinstance(quiet, bool)
+            else quiet  # custom log level provided
+        )
+        logging.getLogger(__project__).setLevel(log_level)
+        self._log = logging.getLogger(".".join([__project__, self.__class__.__name__]))
+
         self.sources = self._source_map_to_etree_map(source_map)
         try:
             self.label = labellike_to_etree(template)
@@ -266,12 +276,12 @@ class Template:
                         # if elem not in label copy then that's fine since we're pruning
                         if twin is not None:
                             twin.getparent().remove(twin)
-                    if pop:  # TODO: implement proper logging
-                        print(
-                            f"WARNING: pruning partially populated {state.t_elem.tag}"
+                    if pop:
+                        self._log.warning(
+                            f"Pruning partially populated {state.t_elem.tag}"
                         )
                     else:
-                        print(f"INFO: pruning empty {state.t_elem.tag}")
+                        self._log.info(f"Pruning empty {state.t_elem.tag}")
                     parent.remove(state.t_elem)
                 # elif pop and empty:
                 #     print(
@@ -291,8 +301,7 @@ class Template:
 
     def _check_structure(self):
         if self._label_pre_handoff is None:
-            # TODO: log that structure check has been skipped
-            print("INFO: skipping structure check")
+            self._log.info("Skipping structure check")
             return
         added = []
         removed = []
@@ -302,7 +311,6 @@ class Template:
         ):
             for elem in a.getroot().iter("*"):
                 path = a.getelementpath(elem)
-                # print(f"{path} -- {b.find(path)}")
                 if b.find(path) is None:
                     record.append((elem.tag, path))
 
