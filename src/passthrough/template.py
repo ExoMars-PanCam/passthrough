@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
@@ -113,12 +114,14 @@ class Template:
         context.set_context_map(context_map)
         self._ext = ExtensionManager()
 
+        self._reorder = []
         self._deferred_fills = []
         self._deferred_reqs = []
 
         self._process_elem(
             PTState(parent=None, t_elem=None, source_map=self._sources), self.root
         )
+        self._reorder_children()
 
         self._label_pre_handoff = None if skip_structure_check else deepcopy(self.label)
 
@@ -183,6 +186,9 @@ class Template:
         self._ext.set_elem_context(t_elem)
         qname = etree.QName(t_elem.tag)
         state = PTState(parent_state, t_elem)
+
+        if state["reorder"]:
+            self._reorder.append(state)
 
         # duplicate subtree for each source
         if len(state["sources"].secondary):
@@ -312,6 +318,35 @@ class Template:
                 )
             text = elem.text.format(*val)
         elem.text = text
+
+    def _reorder_children(self):
+        for state in self._reorder:
+            t_elem = state.t_elem
+            s_elem = state["sources"].primary.find(self.label.getelementpath(t_elem))
+            tags = defaultdict(list)
+            order = []
+            # group t_elem's children by tag, where a child's index within its tag group
+            # corresponds to its instance number
+            for child in t_elem:
+                tags[child.tag].append(child)
+            # build a preliminary order for t_elem's children matching that of t_elem's
+            # by, for each child of s_elem in order, selecting the t_elem child with
+            # the same tag whose instance number is lowest (if one is found).
+            for child in s_elem:
+                tag = tags[child.tag]
+                if len(tag):
+                    order.append(tag.pop(0))
+            # Ensure that any child only present in t_elem is placed after its
+            # preceding sibling from the original document order. This is not
+            # infallible, but should prevent most PDS4 out-of-order errors for added
+            # attributes.
+            for li in tags.values():
+                for child in li:
+                    prev_sibling = child.getprevious()
+                    order.insert(order.index(prev_sibling) + 1, child)
+
+            # Sort t_elem's children in-place using the derived element order
+            t_elem[:] = sorted(t_elem, key=lambda e: order.index(e))
 
     def _prune_empty_optionals(self):
         # evaluate requireds inside-out to allow nested statements

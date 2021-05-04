@@ -41,6 +41,7 @@ class PTState(UserDict):
             ("fill", Property(default=None, inherit=False, types=(str,))),
             ("defer", Property(default=False, inherit=False, types=(bool,))),
             ("multi_branch", Property(default=None, inherit=True, types=(int,))),
+            ("reorder", Property(default=False, inherit=False, types=(bool,))),
         ]
     )
 
@@ -218,6 +219,11 @@ class PTState(UserDict):
         if self.exp["fill"] and len(self.t_elem):
             raise PTStateError("pt:fill defined on a PDS4 class", self.t_elem)
         if not self["fetch"]:
+            # TODO: evaluate if there are any use cases that argue against this
+            if self["reorder"] is True:
+                raise PTStateError(
+                    f'pt:reorder="true()" outside a pt:fetch context is not allowed'
+                )
             if self["multi"] is True:
                 raise PTStateError(
                     f'pt:multi="true()" outside a pt:fetch context is nonsensical',
