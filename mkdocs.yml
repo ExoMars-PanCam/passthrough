@@ -67,7 +67,9 @@ markdown_extensions:
   - pymdownx.details  # collapsible admonitions
   - pymdownx.highlight
   - pymdownx.inlinehilite
-#  - pymdownx.tabbed
+  - pymdownx.tabbed  # tabbed admonitions (e.g. alternative approaches)
+  - pymdownx.snippets:
+      base_path: docs
 #  - attr_list
 #  - def_list
   - footnotes
@@ -79,13 +81,12 @@ nav:
   - Home: index.md
   - Getting started:
     - Installation: get-started/installation.md
-    - Generating a product label: get-started/tutorial-part-one.md
-    - Designing a type template: get-started/tutorial-part-two.md
+    - Generating a product label: get-started/tutorial.md
     - Next steps: get-started/next-steps.md
   - How-to guides:
     - how-to/index.md
     - Inheriting from multiple sources: how-to/multi-source-inheritance.md
-    - String substitution with fill: how-to/fill-format.md
+    - Formatting strings with fill: how-to/fill-format.md
   - Reference:
     - reference/index.md
     - Python API: reference/python-api.md
@@ -102,5 +103,6 @@ nav:
       - XPath expressions: reference/ptl/xpath.md
     - Extension API: reference/extension-api.md
   - Background:
+#    - background/index.md
     - Template processing: background/template-processing.md
   - About: about.md

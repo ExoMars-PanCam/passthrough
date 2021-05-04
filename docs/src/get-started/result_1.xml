@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:img="http://pds.nasa.gov/pds4/img/v1">
+    <!-- ... -->
+    <Observation_Area>
+        <!-- ... -->
+        <img:Imaging>
+            <!-- ... -->
+            <img:Optical_Filter>
+                <img:filter_number>2</img:filter_number>
+                <img:filter_name>Broadband Green</img:filter_name>
+                <img:filter_id>C02</img:filter_id>
+                <img:bandwidth unit="nm">80</img:bandwidth>
+                <img:center_filter_wavelength unit="nm">540</img:center_filter_wavelength>
+            </img:Optical_Filter>
+            <!-- ... -->
+        </img:Imaging>
+        <!-- ... -->
+    </Observation_Area>
+    <!-- ... -->
+</Product_Observational>
