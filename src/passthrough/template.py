@@ -21,6 +21,20 @@ from .state import PTState, SourceGroup
 
 
 class Template:
+    """The `Template` class manages the creation of a data product from a type template.
+
+    After instantiation, the partial label is available through the `label` attribute.
+    For convenience, the document `root` is also exposed, together with its `nsmap`
+    (the namespace prefix->uri dictionary of the partial label).
+
+    Attributes:
+        label lxml.etree._ElementTree: The partial label represented as an lxml element
+            tree, which allows access to its classes and attributes via the XML DOM.
+        root lxml.etree._Element: The partial label's root element (e.g.
+            `Product_Observational`)
+        nsmap dict: The partial label's namespace map
+    """
+
     def __init__(
         self,
         template: LabelLike,
@@ -78,17 +92,17 @@ class Template:
         logging.getLogger(__project__).setLevel(log_level)
         self._log = logging.getLogger(".".join([__project__, self.__class__.__name__]))
 
-        self.sources = self._source_map_to_etree_map(source_map)
+        self._sources = self._source_map_to_etree_map(source_map)
         try:
             self.label = labellike_to_etree(template)
         except TypeError as e:
             raise TypeError(f"template is in an {e}") from None
         if template_source_entry:
-            if "template" in self.sources:
+            if "template" in self._sources:
                 raise KeyError(
                     "source map already contains a mapping for the key 'template'"
                 )
-            self.sources["template"] = self.label
+            self._sources["template"] = self.label
 
         if not keep_template_comments:
             etree.strip_elements(self.label, etree.Comment, with_tail=False)
@@ -103,12 +117,27 @@ class Template:
         self._deferred_reqs = []
 
         self._process_elem(
-            PTState(parent=None, t_elem=None, source_map=self.sources), self.root
+            PTState(parent=None, t_elem=None, source_map=self._sources), self.root
         )
 
         self._label_pre_handoff = None if skip_structure_check else deepcopy(self.label)
 
-    def export(self, directory: Union[Path, str], filename: Optional[str] = None):
+    def export(
+        self, directory: Union[Path, str], filename: Optional[str] = None
+    ) -> None:
+        """Export the partial label to the filesystem.
+
+        Run the partial label through a series of post-processing steps before exporting
+        the completed label to `filename` in `directory.
+
+        If `filename` is not provided, the product ID part of the post-processed label's
+        logical identifier (LID) will be used. Please note that this behaviour is
+        likely to change in an upcoming release!
+
+        Args:
+            directory: Path to the desired output directory.
+            filename: Filename override to use for the output label.
+        """
         self._eval_deferred_fills()
         self._prune_empty_optionals()
         self._ensure_populated()
