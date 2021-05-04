@@ -1,6 +1,6 @@
 # pt:sources
 The `sources` property is used to set the active source label for an element and its descendants. Its expression is used
-directly as a key to a `string -> source label` mapping provided by the client to PT on instantiation.
+directly as a key to a `string -> source label` mapping provided by the product processor to PT on instantiation.
 The resolved active source label acts as the evaluation context of the XPath expressions of other properties, and as
 the source of `fetch`es. The `sources` property must therefore be declared on - or on an ancestor of - any element that
 declares any other PT properties.
@@ -31,5 +31,5 @@ group mapped by the `all` key.
 </emrsp_rm:Processing_Inputs>
 ```
 Notice that the cardinality of `emrsp_rm:Processing_Input_Identification` is determined at runtime by the number of
-source labels assigned to the `all` group by the client. It is therefore trivial to support derived output products
+source labels assigned to the `all` group by the product processor. It is therefore trivial to support derived output products
 that need to accommodate a variable number of input products.

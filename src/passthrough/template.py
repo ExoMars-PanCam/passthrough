@@ -31,6 +31,45 @@ class Template:
         skip_structure_check: bool = False,
         quiet: Union[bool, int] = False,
     ):
+        """Instantiate a partial label from the provided type template.
+
+        Run the provided `template` through a series of pre-processing steps resulting
+        in a partial label.
+
+        Args:
+            template: `LabelLike` representation of the output product's type template
+                (e.g. a string path to an XML file).
+            source_map: A dictionary which maps string monikers used by the `pt:sources`
+                property, to `LabelLike` source products. A single moniker can map to a
+                single product or a list of products, and products can be referenced by
+                multiple monikers. For instance:
+                ```python
+                    {
+                        "input": "input.xml",
+                        "flat": "flatfield.xml",
+                        "processing_inputs": [
+                            "input.xml",
+                            "flatfield.xml"
+                        ],
+                    }
+                ```
+            context_map: If called for by the template, a dictionary of key-value pairs
+                which can be looked up using the `pt:context()` XPath extension
+                function, for instance to automatically populate history entries with
+                the processor's ID and version using the `pt:fill` property.
+            template_source_entry: Add a "template"->`template` mapping to `source_map`.
+                Convenience option for self-referencing templates.
+            keep_template_comments: If enabled, propagate XML comments from `template`
+                to the exported output product.
+            skip_structure_check: If enabled, share a few milliseconds off the export
+                process (and some kilobytes of memory) by not sanity-checking the
+                structure of the partial label to that of the original `template`.
+            quiet: If set to True, suppress `Template` log messages below logging.ERROR
+                from propagating up the hierarchy. Alternatively, a numeric log level
+                can be provided, which will be forwarded directly to the `Template`
+                logger.
+        """
+
         log_level = (
             (logging.ERROR if quiet else logging.INFO)
             if isinstance(quiet, bool)

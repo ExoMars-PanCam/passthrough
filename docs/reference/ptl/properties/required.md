@@ -12,14 +12,14 @@ If the property evaluates to True this triggers an error condition, while if it 
 **Overview** section above.
 
 ## When not fetching
-In the non-`fetch`ing context, `required` signals whether an element left empty by the client (and/or any `fill`
-evaluations; see below) should be treated as an error condition (True), or if the element (subtree) should be pruned
+In the non-`fetch`ing context, `required` signals whether an element left empty by the product processor (and/or any `fill`
+evaluations) should be treated as an error condition (True), or if the element (subtree) should be pruned
 from the output product (False).
 
-> Elements that are "nilled out", i.e. that contain the attribute `xsi:nil="true"`, are not considered empty by PT.
+> Elements that are "nilled out", i.e. that contain the attribute `xsi:nil="true"`, are not considered to be empty by PT.
 
 An important detail in this context is that the evaluation of `required`'s XPath expression is deferred until the
-post-processing stage. Thus, the expression can inspect the template label as populated by the client (which at that
+post-processing stage. Thus, the expression can inspect the template label as populated by the product processor (which at that
 point might contain relevant information about what processing has been performed) to determine whether the given
 element is required to be present in the output label. For example,
 ```xml
@@ -42,7 +42,7 @@ considered empty if *any* of its children are empty. Therefore, in the case of
 the `emrsp_rm_pan:ISEM_Footprint` class will be pruned by the post-processor if any of `x`, `y` or `radius` is empty.
 The `required` property is in other words not strictly speaking inherited by child elements, but this approach is
 considered preferable to the alternative where the above class would never be pruned due to the static presence of its
-`desrciption` child.
+`description` child.
 
 If instead the class should be kept if any of its children are present, optional children should be explicitly declared
 as such. The post-processor will evaluate and prune optional elements from the bottom of the hierarchy up, removing any

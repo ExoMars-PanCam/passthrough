@@ -1,9 +1,14 @@
 # The Passthrough Template Language 
+!!! warning "Please note"
+    This page needs to go on a diet. Some parts will likely be moved to the 
+    [background area](/background), in due course. To skip past the essay, navigate to 
+    the [Passthrough properties](properties) subsection.
+
 The passthrough (PT) template language supports the effective generation of PDS4 (XML) data product labels.
 
 Distinct from many conventional template systems, PT is not designed to transform an input data structure
 directly into an output document. Rather, a template is pre-processed by the template handler into a partially
-populated label which is then handed off to the client data product processor. The client is responsible for populating
+populated label which is then handed off to the data product processor. The product processor is responsible for populating
 (most of) the remaining elements before handing back control to the template handler for post-processing and export.
 
 This usage pattern - simply referred to as "fetch, fill - fill, export" - has been deliberately chosen to leverage the
@@ -13,7 +18,7 @@ As such, key features of the system include the ability to
 - work with multiple source labels and groups thereof
 - strictly specify the allowed permutations of the output label structure in a human friendly manner
 - abstract common operations (such as dealing with LIDs and datetimes) via built-in functions
-- define client-side extensions
+- define processor-side extensions
 
 To facilitate these features, a declarative approach is taken. PT templates foremost consist of a skeleton structure of
 the PDS4 classes and attributes that comprise a given data product type (e.g. a raw image, distinct from its downstream
@@ -22,7 +27,7 @@ attributes (i.e. leaf nodes; here termed *attributes*) - are added by the human 
 and post-processing shall be applied to specific elements and their descendants.
 
 A key principle of PT is that a template must fully specify the structure of the output product label it describes.
-In other words, a template shall act as the blueprint for its output product, and clients are actively discouraged from
+In other words, a template shall act as the blueprint for its output product, and product processors are actively discouraged from
 amending the structural contents of the partial label generated from this template. However, tools are provided to
 allow different permutations of a label's structure to be described (i.e. some elements are only present under certain
 conditions), and repeating elements can be collapsed to increase readability of the template.
@@ -42,7 +47,7 @@ facilitating this frequent tendency under PDS4 for downstream products to repeat
 
 While `img:exposure_duration_count` above will be populated from the primary source, `img:exposure_duration`
 is marked with `pt:fetch="false()"`. This indicates that the template handler expects this attribute to instead be
-populated by the client (a calibration processor, in this scenario), and will verify this as part of post-processing.
+populated by the product processor (a calibration processor, in this scenario), and will verify this as part of post-processing.
 
 PT leverages the XML nature of PDS4 labels by making extensive use of XPath (and, as shown later, its ability to define
 custom extension functions). The `img:exposure_type` attribute in this example is absent in the source label if the
