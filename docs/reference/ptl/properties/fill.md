@@ -18,7 +18,7 @@ resultant types from its property expression:
 Revisiting our earlier example from the **Source groups** section, we see that there are two attributes that need to be
 populated for each source: `lid_reference` and `emrsp_rm:operational_vid`. The values for both can be found in
 statically known attributes in the source, but we cannot `fetch` them as they do not have the same paths as the target
-template attributes. We could leave their population up to the client, but the "boiler plate" nature of the copy-paste
+template attributes. We could leave their population up to the product processor, but the "boiler plate" nature of the copy-paste
 operations involved makes `fill`ing an attractive alternative, which also has the added benefit of making this part of
 the template self-documenting:
 ```xml
@@ -65,7 +65,7 @@ plate operations and processing, and this line runs somewhere in the vicinity of
 ```
 In keeping with the theme of a calibration processor, the above example shows how a `stop_date_time` can be expressed
 in the template using a `defer`red `fill` expression (that is, evaluated during post-processing) employing an XPath
-extension function which increments the `fetch`ed observation start time by the client populated calibrated exposure
+extension function which increments the `fetch`ed observation start time by the product processor-populated calibrated exposure
 duration. This application might be considered to be within the remit of the template because it deals with the
 minutiae of PDS4 datetime formatting - functionality that arguably is better suited to being encapsulated in a PT
 extension function than duplicated across processors. 

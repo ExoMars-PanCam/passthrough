@@ -22,7 +22,7 @@ language (PTL) [specification][3], and a language logic [extension API][4].
 
 [1]: https://github.com/Small-Bodies-Node/pds4_tools
 [2]: reference/python-api.md
-[3]: reference/ptl-spec.md
+[3]: reference/ptl
 [4]: reference/extension-api.md
 
 ## Project documentation

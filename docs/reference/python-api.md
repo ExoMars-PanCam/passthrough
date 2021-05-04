@@ -1,7 +1,5 @@
 # Python API
 
-To be written
-
 ## passthrough.Template
 ::: passthrough.Template
     rendering:

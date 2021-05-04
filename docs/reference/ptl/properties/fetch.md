@@ -11,6 +11,4 @@ than just their document order positions (commonly seen in XPath derived paths).
 
 It is not currently possible for `fetch` to target a specific instance of a plural element; the n-th instance of
 a template element will match the n-th instance of the corresponding source element. However, it is possible to
-duplicate a singular template element's subtree for each matched source instance, using the `multi` parameter described
-below. 
-
+duplicate a singular template element's subtree for each matched source instance, using the `multi` property.
