@@ -18,7 +18,7 @@ for intermediary internal product representations or separate file formats.
 
 
 Passthrough consists of a Python template [handler][2], the Passthrough template 
-language (PTL) [specification][3], and a language logic extension [API][4].
+language (PTL) [specification][3], and a language logic [extension API][4].
 
 [1]: https://github.com/Small-Bodies-Node/pds4_tools
 [2]: reference/python-api.md
@@ -33,17 +33,18 @@ in your own mission's product processors.
 </div>
 <div markdown="1" class="pt-column2">
 ###[How-to guides](./how-to/)
-Recipes addressing common use-cases and challenges you may encounter when creating 
+Recipes addressing common use-cases and challenges you may encounter when designing 
 templates and generating labels. 
 </div>
 <div markdown="1" class="pt-column2 pt-clear">
 ###[Background](background/template-processing.md)
-Explanation of the key concepts behind Passthrough, and how the system integrates with 
-the product generation flow.
+Explanation of the key concepts behind Passthrough and its template language, and 
+their roles in the product generation flow.
 </div>
 <div markdown="1" class="pt-column2">
 ###[Reference](./reference/)
-Technical description the Python `Template` handler, language syntax, and extensions.
+Technical description of the Python `Template` handler, the PTL syntax, and the core 
+XPath extension functions.
 </div>
 <br class="pt-clear"/>
 

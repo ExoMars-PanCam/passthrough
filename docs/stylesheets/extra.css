@@ -1,3 +1,14 @@
+/* fit 88-col code listings w/o scrolling */
+.md-grid {
+    max-width: 64.1rem;
+}
+
+/* tone down tabbed admonition titles a bit (defaults to accent colour) */
+.md-typeset .tabbed-set>input:checked+label {
+    color: var(--md-primary-fg-color);
+    border-color: var(--md-primary-fg-color);
+}
+
 /* Kluges to set up the landing page documentation quadrants */
 .pt-column2 {
     float: left;
@@ -61,7 +72,7 @@
         /*! Darcula theme by JetBrains, coerced to work with at least python and xml*/
         --md-code-fg-color: var(--md-default-fg-color);
         --md-code-bg-color: var(--md-default-bg-color--dark);
-        --md-code-hl-color: var(--md-default-bg-color); /* FIXME: unsure where this is used */
+        --md-code-hl-color: var(--md-default-bg-color--light);
         --md-code-hl-operator-color: var(--md-code-fg-color); /* +-=/ */
         --md-code-hl-operator-word-color: var(--md-code-hl-keyword-color); /* not and or */
         --md-code-hl-punctuation-color: var(--md-code-fg-color);
@@ -105,7 +116,6 @@
 .highlight .sd   /* Literal, string doc */
 { color: var(--md-code-hl-string-color); font-style: italic } /* MOD */
 
-.highlight .cp,  /* Comment, pre-processor */
 .highlight .se,  /* Literal, string escape */
 .highlight .sh,  /* Literal, string heredoc */
 .highlight .sr,  /* Literal, string regex */
@@ -156,6 +166,7 @@
 .highlight .nd  /* Name, decorator */
 { color: var(--md-code-hl-decorator-color); }
 
+.highlight .cp,  /* Comment, pre-processor MOD: moved from "special"; xml declaration */
 .highlight .c,   /* Comment */
 .highlight .cm,  /* Comment, multiline */
 .highlight .c1,  /* Comment, single */
