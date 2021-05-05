@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "passthrough"
-version = "0.3.1"
+version = "0.3.2"
 description = "Passthrough - Template-Driven PDS4 Data Product Generation"
 authors = ["Ariel Ladegaard <arl13@aber.ac.uk>"]
 license = "MIT"
