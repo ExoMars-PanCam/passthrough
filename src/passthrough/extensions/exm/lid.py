@@ -122,12 +122,7 @@ def lid_to_browse(_, lid_string: Union[str, List[etree._Element]]):
         lid_string = lid_string[0].text  # TODO: complain if len > 1 or type not _Elem
     lid = ProductLIDFormatter(lid_string)
     parts = lid.fields["collection_id"].split("_")
-    if len(parts) != 2:
-        # Only allow data_* source collections for now (cal collection support TBC)
-        raise ValueError(
-            f"Illegal source LID collection encountered: {lid.fields['collection_id']}"
-        )
-    lid.fields["collection_id"] = "_".join(["browse", parts[-1]])
+    lid.fields["collection_id"] = "_".join(["browse", *parts[1:]])
     return str(lid)
 
 
