@@ -1,7 +1,7 @@
 # Next steps
 !!! warning ""
     Please note that we're in the process of transitioning our documentation into this
-    new format. We hope to have it completed by mid-May 2021; until then, some sections
+    new format. We hope to have it completed by mid-August 2021; until then, some sections
     will be a little rough around the edges.
 
 The [how-to area][1] contains a collection of to-the-point guides on how to accomplish 
