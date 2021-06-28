@@ -105,6 +105,10 @@ passthrough follows three broad steps:
 3. export the completed label, allowing PT to prune any unpopulated optional attributes
 and run its consistency checks.
 
+<br/>
+
+![Template flow diagram][template_flow]
+
 ## The results
 When we run our processor, we are presented with two resultant product labels, each
 corresponding to one of the sample input product labels:
@@ -145,3 +149,5 @@ that a type template should directly reflect the structure of the product type i
 defines. The goal is to avoid surprises for users, and allow templates to act as formal
 definitions of product types and further as the interfaces between processors of a
 project's product pipeline.
+
+[template_flow]: /assets/diagrams/renders/template_flow.png
