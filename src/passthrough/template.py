@@ -168,9 +168,8 @@ class Template:
                 smap[key] = cache[key]
             else:
                 try:
-                    if isinstance(
-                        smap[key], LabelLike.__args__
-                    ):  # FIXME: __args__ is undocumented (= not reliable)
+                    # FIXME: __args__ is undocumented (= not reliable); switch to a user type (register current members)?
+                    if isinstance(smap[key], LabelLike.__args__):
                         smap[key] = cache[key] = labellike_to_etree(smap[key])
                     else:
                         smap[key] = cache[key] = [
@@ -384,7 +383,7 @@ class Template:
                             f"Pruning partially populated {state.t_elem.tag}"
                         )
                     else:
-                        self._log.info(f"Pruning empty {state.t_elem.tag}")
+                        self._log.debug(f"Pruning empty {state.t_elem.tag}")
                     parent.remove(state.t_elem)
                 # elif pop and empty:
                 #     print(

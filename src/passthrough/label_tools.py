@@ -67,8 +67,9 @@ def labellike_to_etree(labellike: LabelLike) -> etree._ElementTree:
 
 
 def add_default_ns(nsmap: Dict[Optional[str], str]) -> Dict[str, str]:
-    nsmap[PDS_NS_PREFIX] = nsmap[None]
-    del nsmap[None]
+    if None in nsmap:
+        nsmap[PDS_NS_PREFIX] = nsmap[None]
+        del nsmap[None]
     return nsmap
 
 

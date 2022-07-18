@@ -8,11 +8,7 @@ from ...exc import PTEvalError
 
 class PDSDatetime:
     LABEL_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
-    _EXPONENTS = {
-        "s": 0,
-        "ms": -3,
-        "microseconds": -6,
-    }
+    _EXPONENTS = {"s": 0, "ms": -3, "microseconds": -6}
 
     def __init__(
         self,

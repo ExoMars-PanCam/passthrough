@@ -1,10 +1,12 @@
+from typing import Optional
+
 from lxml import etree
 
 
 class PTError(Exception):
     """Base class for passthrough exceptions."""
 
-    def __init__(self, msg: str, t_elem: etree._Element = None):
+    def __init__(self, msg: str, t_elem: Optional[etree._Element] = None):
         elem_info = (
             f" ({etree.QName(t_elem.tag).localname} @ line {t_elem.sourceline})"
             if t_elem is not None
