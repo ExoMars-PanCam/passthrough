@@ -11,3 +11,5 @@ functions = {
     datetime_add.__name__.replace("_", "."): datetime_add,
     datetime_now.__name__.replace("_", "."): datetime_now,
 }
+
+resources = {"context_map": {}}

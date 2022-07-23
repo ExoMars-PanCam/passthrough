@@ -1,3 +1,4 @@
+from copy import deepcopy
 from functools import partial
 from typing import Any, MutableMapping, Optional
 
@@ -25,6 +26,7 @@ class ExtensionManager:
     def __init__(self):
         self.t_elem: Optional[etree._Element] = None
         self.function_namespaces: MutableMapping[str, etree.FunctionNamespace] = {}
+        self.resources: MutableMapping[str, MutableMapping[str, Any]] = {}
 
         extensions = get_extensions()
         for prefix, mod in extensions.items():
@@ -34,25 +36,35 @@ class ExtensionManager:
                 )
             elif not isinstance(mod.functions, MutableMapping):
                 raise TypeError(f"'{prefix}.functions' must be a mapping")
+            if hasattr(mod, "resources"):
+                if not isinstance(mod.resources, MutableMapping):
+                    raise TypeError(f"'{prefix}.resources' must be a mapping")
+                self.resources[prefix] = deepcopy(mod.resources)
+            else:
+                self.resources[prefix] = {}
             uri = f"{PT_EXT_URI_BASE}/{prefix}"
             fns = etree.FunctionNamespace(uri)
             fns.prefix = prefix
             for func_name, func in mod.functions.items():
-                fns[func_name] = partial(self._dispatch, func)
+                fns[func_name] = partial(self._dispatch, func, self.resources[prefix])
             self.function_namespaces[prefix] = fns
 
     def set_elem_context(self, t_elem):
         # during tree traversal: set self.t_elem that will be passed to extensions
         self.t_elem = t_elem
 
-    def _dispatch(self, func, ctx, *args, **kwargs):
-        return func(PTContext(self.t_elem, ctx), *args, **kwargs)
+    def _dispatch(self, func, resources, lxml_ctx, *args, **kwargs):
+        """Call extension functions through a level of indirection to allow the active
+        template element to be injected into the invocation context.
+        """
+        return func(PTContext(self.t_elem, resources, lxml_ctx), *args, **kwargs)
 
 
 class PTContext:
-    def __init__(self, t_elem: etree._Element, ctx):
+    def __init__(self, t_elem: etree._Element, resources: MutableMapping, lxml_ctx):
+        self.resources = resources
         self._t_elem = t_elem
-        self._s_root = ctx.context_node
+        self._s_root = lxml_ctx.context_node
         self._s_xpath = None
         self._s_nsmap = None
         self._t_root = None

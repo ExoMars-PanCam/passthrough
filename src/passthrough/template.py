@@ -9,7 +9,6 @@ from lxml import etree
 from . import FILL_TOKEN, PT_NS, __project__
 from .exc import PTEvalError, PTFetchError, PTTemplateError
 from .extensions import ExtensionManager
-from .extensions.pt import context
 from .label_tools import (
     ATTR_PATHS,
     LabelLike,
@@ -111,8 +110,8 @@ class Template:
         self.root = self.label.getroot()
         self.nsmap = add_default_ns(self.root.nsmap)
 
-        context.set_context_map(context_map)
         self._ext = ExtensionManager()
+        self._ext.resources["pt"]["context_map"] = context_map
 
         self._reorder = []
         self._deferred_fills = []
