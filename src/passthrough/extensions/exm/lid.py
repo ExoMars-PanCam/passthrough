@@ -1,146 +1,196 @@
-from collections import OrderedDict
-from copy import deepcopy
-from typing import List, Union
-
-from lxml import etree
+from datetime import datetime, timedelta
+from typing import NamedTuple, Optional
 
 from ...exc import PTEvalError
 from ...label_tools import ATTR_PATHS
 from ..pt.datetime import PDSDatetime
 from ..pt.vid import VID
-from . import ATTR_PATHS_EXM
 
 LID_DATETIME_FORMAT = "%Y%m%dt%H%M%S.%fz"
 
 
-class ProductLIDFormatter:
-    LID_STRUCTURE = OrderedDict(
-        {
-            "prefix": None,
-            "bundle_id": None,
-            "collection_id": None,
-            "product_id": {
-                "instrument": None,
-                "processing_level": None,
-                "type": None,
-                "subunit": None,
-                "descriptor": None,
-                "time": None,
-            },
-        }
-    )
+class LIDTime:
+    def __init__(self, start: PDSDatetime, stop: Optional[PDSDatetime] = None):
+        self.start = start
+        self.stop = stop
 
-    def __init__(self, from_string: str = None):
-        self.fields = deepcopy(self.LID_STRUCTURE)
-        self.vid = None
-        if from_string is not None:
-            self.from_string(from_string.strip())
+    def duration(self) -> Optional[timedelta]:
+        if self.stop is None:
+            return None
+        return self.stop.datetime - self.start.datetime
 
-    def from_string(self, lid: str):
-        fields = lid.split("::")
-        if len(fields) == 2:
-            self.vid = VID(fields[-1])
-            lid = fields[0]
-        elif len(fields) > 2:
-            raise ValueError(f"Invalid LID: {lid}")
+    def __str__(self) -> str:
+        if self.stop is None:
+            return str(self.start)
+        return f"{self.start}_{self.stop}"
 
-        self._parse_fields(lid)
+    def __lt__(self, other) -> bool:
+        return self.start.datetime < other.start.datetime
 
-    def _parse_fields(self, lid: str):
+
+class PanCamPID(NamedTuple):
+    instrument: str
+    processing_level: str
+    type_: str
+    subunit: Optional[str]
+    descriptor: str
+    time: Optional[LIDTime]
+
+    def __str__(self):
+        fields = []
+        for field in self:
+            if field is None or not field:
+                continue
+            elif not isinstance(field, str):
+                field = str(field)
+            fields.append(field)
+        return "_".join(fields)
+
+    @classmethod
+    def from_string(cls, pid: str) -> "PanCamPID":
+        """Parse the product ID component of a PanCam product LID.
+
+        Note that currently only PIDs based on (optional) start & stop times are
+        supported; PIDs with trailing sol numbers are not supported.
+
+        PIDs must adhere to the following format (optionals in square brackets):
+        `<instrument>_<processing_level>_<type>[_<subunit>]_<descriptor>_[<time1>[_<time2>]]`
+        """
+        subfields = pid.split("_")
+        if len(subfields) not in (5, 6, 7):
+            raise ValueError(f"Invalid number of subfields ({len(subfields)}): {pid}")
+        instrument = subfields.pop(0)
+        processing_level = subfields.pop(0)
+        type_ = subfields.pop(0)
+        start_stop = []
+        for _ in range(2):
+            try:
+                ss = PDSDatetime(subfields[-1], LID_DATETIME_FORMAT)
+            except ValueError:
+                break
+            else:
+                subfields.pop()
+                start_stop.insert(0, ss)
+        time = LIDTime(*start_stop) if start_stop else None
+        descriptor = subfields.pop()
+        subunit = subfields.pop() if subfields else None
+        return cls(
+            instrument=instrument,
+            processing_level=processing_level,
+            type_=type_,
+            subunit=subunit,
+            descriptor=descriptor,
+            time=time,
+        )
+
+
+class ExoMarsLID(NamedTuple):
+    prefix: str
+    bundle_id: str
+    collection_id: str
+    product_id: PanCamPID
+    vid: Optional[VID]
+
+    @classmethod
+    def from_string(cls, lidvid: str) -> "ExoMarsLID":
+        lid, *vid = lidvid.strip().split("::")
+        if not vid:
+            vid = None
+        elif len(vid) == 1:
+            vid = VID(vid[0])
+        else:
+            raise ValueError(f"Invalid LID(VID): {lidvid}")
+
         fields = lid.split(":")
         if len(fields) != 6:
             raise ValueError(f"Invalid number of LID fields ({len(fields)}): {lid}")
 
-        self.fields["prefix"] = ":".join(fields[:3])  # urn:esa:psa
-        self.fields["bundle_id"] = fields[3]
-        self.fields["collection_id"] = fields[4]
+        prefix = ":".join(fields[:3])  # urn:esa:psa
+        bundle_id = fields[3]
+        collection_id = fields[4]
 
-        subfields = fields[5].split("_")
-        # <instrument>_<processing_level>_<type>[_<subunit>]_<descriptor>_[<time1>[_<time2>]]
-        if len(subfields) not in (5, 6, 7):
-            raise ValueError(
-                f"Invalid number of subfields ({len(subfields)}): {fields[5]}"
-            )
+        # TODO: in future should add delegator class method to ProductID which
+        # instantiates subclass based on bundle ID (emrsp_rm_*); subclasses to register
+        # their instrument in a similar manner to ProcTools.DataProduct.
+        product_id = PanCamPID.from_string(fields[5])
 
-        pid = self.fields["product_id"]
-        pid["instrument"] = subfields.pop(0)
-        pid["processing_level"] = subfields.pop(0)
-        pid["type"] = subfields.pop(0)
+        return cls(
+            prefix=prefix,
+            bundle_id=bundle_id,
+            collection_id=collection_id,
+            product_id=product_id,
+            vid=vid,
+        )
 
-        # check for time component(s)
-        try:
-            time = PDSDatetime(subfields[-1], LID_DATETIME_FORMAT)
-        except ValueError:
-            # Future: could implement support for e.g. Sol number if required
-            # For now, assume product ID only consists of basename
-            # TODO: verify valid assumption for EXM/PanCam (i.e. sol number not used)
-            pass
-        else:
-            subfields.pop()
-            pid["time"] = [time]
-            try:  # I don't like this nesting either...
-                time = PDSDatetime(subfields[-2], LID_DATETIME_FORMAT)
-            except ValueError:  # no stop_date_time component
-                pass
+    @classmethod
+    def replace(cls, instance: "ExoMarsLID", **changes) -> "ExoMarsLID":
+        args = {}
+        for k in instance._fields:
+            if k in changes:
+                v = changes.pop(k)
             else:
-                subfields.pop()
-                pid["time"].insert(0, time)
+                v = getattr(instance, k)
+            args[k] = v
+        if changes:
+            raise RuntimeError(f"Field(s) not recognised: {changes}")
+        return cls(**args)
 
-        pid["descriptor"] = subfields.pop()
+    def __str__(self) -> str:
+        fields = [self.prefix, self.bundle_id, self.collection_id, str(self.product_id)]
+        if self.vid is not None:
+            fields.append(str(self.vid))
+        return ":".join(fields)
 
-        if len(subfields):
-            pid["subunit"] = subfields.pop()
+    def __eq__(self, other):
+        if isinstance(other, ExoMarsLID):
+            return str(self) == str(other)
+        return False
 
-    def __str__(self):
-        """
-        NOTE: currently relies on
-        :return:
-        """
-        if not (
-            None not in self.fields.values()
-            and None not in self.fields["product_id"].values()
-        ):
-            raise ValueError("LID is incomplete")  # FIXME: warn instead?
-        field_list = []
-        for k in self.fields:
-            if k == "product_id":
-                subfield_list = []
-                for kk in self.fields[k]:
-                    if kk == "time":
-                        time = "_".join([str(e) for e in self.fields[k][kk]])
-                        subfield_list.append(time)
-                    else:
-                        subfield_list.append(self.fields[k][kk])
-                field_list.append("_".join(subfield_list))
-            else:
-                field_list.append(self.fields[k])
-        return ":".join(field_list)
+    def __lt__(self, other):
+        if isinstance(other, ExoMarsLID):
+            return self.product_id < other.product_id
+        raise TypeError(
+            f"'<' not supported between instances of '{type(self)}' and '{type(other)}'"
+        )
 
 
-def lid_to_browse(_, lid_string: Union[str, List[etree._Element]]):
-    if not isinstance(lid_string, str):
-        lid_string = lid_string[0].text  # TODO: complain if len > 1 or type not _Elem
-    lid = ProductLIDFormatter(lid_string)
-    parts = lid.fields["collection_id"].split("_")
-    lid.fields["collection_id"] = "_".join(["browse", *parts[1:]])
-    return str(lid)
+# XPath extension functions
+
+
+def lid_to_browse(ctx):
+    lid = _get_source_lid(ctx)
+    cid = lid.collection_id.split("_")
+    cid[0] = "browse"
+    browse_lid = ExoMarsLID.replace(lid, collection_id="_".join(cid))
+    return str(browse_lid)
 
 
 def lid_subunit(ctx):
-    type_ = ctx.t_xpath(ATTR_PATHS_EXM["type"])[0].text
-    if type_ == "spec-rad":
-        pp_200b_lid = ctx.s_xpath(ATTR_PATHS["lid"])[0].text
-        subunit = ProductLIDFormatter(pp_200b_lid).fields["product_id"]["subunit"]
-    else:
-        raise PTEvalError(f"unrecognised product type '{type_}'", ctx.t_elem)
+    lid = _get_source_lid(ctx)
+    subunit = lid.product_id.subunit
+    if subunit is None:
+        raise PTEvalError(f"Source LID does not include a subunit: '{lid}'", ctx.t_elem)
     return subunit
 
 
 def lid_time(ctx):
-    type_ = ctx.t_xpath(ATTR_PATHS_EXM["type"])[0].text
-    if type_ == "spec-rad":
-        pp_200b_lid = ctx.s_xpath(ATTR_PATHS["lid"])[0].text
-        time = str(ProductLIDFormatter(pp_200b_lid).fields["product_id"]["time"][0])
-    else:
-        raise PTEvalError(f"unrecognised product type '{type_}'", ctx.t_elem)
-    return time
+    lid = _get_source_lid(ctx)
+    time = lid.product_id.time
+    if time is None:
+        raise PTEvalError(f"Source LID does not include a time: '{lid}'", ctx.t_elem)
+    return str(time)
+
+
+def lid_to_file_name(ctx, file_type: str):
+    lid = _get_source_lid(ctx)
+    return f"{str(lid.product_id)}{file_type}"
+
+
+def _get_source_lid(ctx) -> ExoMarsLID:
+    lid = ctx.resources.get(ctx.s_root, None)
+    if lid is None:
+        # FIXME: remove dependency on ATTR_PATHS; can we move MetaElement et al to PT?
+        lid = ctx.resources[ctx.s_root] = ExoMarsLID.from_string(
+            ctx.s_xpath(ATTR_PATHS["lid"])[0].text
+        )
+    return lid
