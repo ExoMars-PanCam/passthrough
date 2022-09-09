@@ -9,6 +9,7 @@ from lxml import etree
 from . import FILL_TOKEN, PT_NS, __project__
 from .exc import PTEvalError, PTFetchError, PTTemplateError
 from .extensions import ExtensionManager
+from .extensions.file import FileHandler
 from .label_tools import (
     ATTR_PATHS,
     LabelLike,
@@ -75,9 +76,9 @@ class Template:
                 Convenience option for self-referencing templates.
             keep_template_comments: If enabled, propagate XML comments from `template`
                 to the exported output product.
-            skip_structure_check: If enabled, share a few milliseconds off the export
+            skip_structure_check: If enabled, shave a few milliseconds off the export
                 process (and some kilobytes of memory) by not sanity-checking the
-                structure of the partial label to that of the original `template`.
+                structure of the partial label against that of the original `template`.
             quiet: If set to True, suppress `Template` log messages below logging.ERROR
                 from propagating up the hierarchy. Alternatively, a numeric log level
                 can be provided, which will be forwarded directly to the `Template`
@@ -124,30 +125,27 @@ class Template:
 
         self._label_pre_handoff = None if skip_structure_check else deepcopy(self.label)
 
-    def export(
-        self, directory: Union[Path, str], filename: Optional[str] = None
-    ) -> None:
+        # Ensure sensible t_elem context for ext func eval after handoff
+        self._ext.set_elem_context(self.root)
+
+    def export(self, directory: Union[Path, str], filename: str) -> None:
         """Export the partial label to the filesystem.
 
         Run the partial label through a series of post-processing steps before exporting
-        the completed label to `filename` in `directory.
-
-        If `filename` is not provided, the product ID part of the post-processed label's
-        logical identifier (LID) will be used. Please note that this behaviour is
-        likely to change in an upcoming release!
+        the completed label to `filename` in `directory`.
 
         Args:
             directory: Path to the desired output directory.
             filename: Filename override to use for the output label.
         """
+        for fh_elem, fh in self._ext.resources["file"]["handlers"].items():
+            self._log.debug(f"Writing data file to disk: '{fh.file_name}'")
+            fh.write(directory)
         self._eval_deferred_fills()
         self._prune_empty_optionals()
         self._ensure_populated()
         self._check_structure()
         etree.cleanup_namespaces(self.label)
-        if filename is None:
-            lid = self.label.xpath(ATTR_PATHS["lid"], namespaces=self.nsmap)[0].text
-            filename = f"{lid.split(':')[-1].strip()}.xml"  # ExoMars/PSA specific
         if not isinstance(directory, Path):
             directory = Path(directory)
         directory.mkdir(parents=True, exist_ok=True)
@@ -157,6 +155,11 @@ class Template:
             pretty_print=True,
             xml_declaration=True,
         )
+
+    def register_file_handler(self, fh: FileHandler):
+        if not isinstance(fh, FileHandler):
+            raise TypeError(f"'{type(fh)}' is not a descendant of 'FileHandler'")
+        self._ext.resources["file"]["handlers"][fh.t_elem] = fh
 
     def _source_map_to_etree_map(
         self, smap: Dict[str, Union[LabelLike, Sequence[LabelLike]]]

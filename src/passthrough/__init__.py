@@ -2,7 +2,7 @@
 
 """
 try:
-    import importlib.metadata as importlib_metadata
+    import importlib.metadata as importlib_metadata  # type: ignore
 except ImportError:
     import importlib_metadata
 _dist_meta = importlib_metadata.metadata("passthrough")
