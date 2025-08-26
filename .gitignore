@@ -108,3 +108,4 @@ ENV/
 
 # setuptools_scm generated package info file
 src/rcp/_pkg_info.py
+
