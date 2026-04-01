@@ -7,11 +7,9 @@ class PTError(Exception):
     """Base class for passthrough exceptions."""
 
     def __init__(self, msg: str, t_elem: Optional[etree._Element] = None):
-        elem_info = (
-            f" ({etree.QName(t_elem.tag).localname} @ line {t_elem.sourceline})"
-            if t_elem is not None
-            else ""
-        )
+        elem_info = ""
+        if t_elem is not None:
+            elem_info = f" ({etree.QName(t_elem.tag).localname} @ line {t_elem.sourceline})"
         super().__init__(f"{msg}{elem_info}")
 
 

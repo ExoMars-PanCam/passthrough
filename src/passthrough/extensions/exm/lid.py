@@ -10,6 +10,11 @@ LID_DATETIME_FORMAT = "%Y%m%dt%H%M%S.%fz"
 
 
 class LIDTime:
+    """
+    A class to hold and format a LID time.
+
+    Provides duration, formatting and ordering methods
+    """
     def __init__(self, start: PDSDatetime, stop: Optional[PDSDatetime] = None):
         self.start = start
         self.stop = stop
@@ -29,6 +34,9 @@ class LIDTime:
 
 
 class PanCamPID(NamedTuple):
+    """
+    A class that understands PanCam PIDs.
+    """
     instrument: str
     processing_level: str
     type_: str
@@ -85,6 +93,9 @@ class PanCamPID(NamedTuple):
 
 
 class ExoMarsLID(NamedTuple):
+    """
+    A class that understands ExoMars LIDs.
+    """
     prefix: str
     bundle_id: str
     collection_id: str
@@ -158,6 +169,9 @@ class ExoMarsLID(NamedTuple):
 
 
 def lid_to_browse(ctx):
+    """
+    Returns a LID with its first part (delimited by "_") changed to "browse".
+    """
     lid = _get_source_lid(ctx)
     cid = lid.collection_id.split("_")
     cid[0] = "browse"
@@ -166,6 +180,9 @@ def lid_to_browse(ctx):
 
 
 def lid_subunit(ctx):
+    """
+    Returns the subunit field from the LID of the source.
+    """
     lid = _get_source_lid(ctx)
     subunit = lid.product_id.subunit
     if subunit is None:
@@ -174,6 +191,9 @@ def lid_subunit(ctx):
 
 
 def lid_time(ctx):
+    """
+    Returns the "time" field from the LID of the source.
+    """
     lid = _get_source_lid(ctx)
     time = lid.product_id.time
     if time is None:
@@ -182,11 +202,17 @@ def lid_time(ctx):
 
 
 def lid_to_file_name(ctx, file_type: str):
+    """
+    Construct a filename.
+    """
     lid = _get_source_lid(ctx)
     return f"{str(lid.product_id)}{file_type}"
 
 
 def _get_source_lid(ctx) -> ExoMarsLID:
+    """
+    Extract an ExoMars LID from the context.
+    """
     lid = ctx.resources.get(ctx.s_root, None)
     if lid is None:
         # FIXME: remove dependency on ATTR_PATHS; can we move MetaElement et al to PT?

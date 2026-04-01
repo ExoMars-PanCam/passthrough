@@ -29,6 +29,26 @@ class SourceGroup:
 
 
 class PTState(UserDict):
+    """
+    This class represents the PT configuration of a single XML element
+    within a template. Given a parent element, it handles inheritance of
+    properties and validates that the resulting configuration is sensible.
+
+    The class is a subclass of UserDict and, once instantiated, callers
+    will typically access properties via the dict interface.
+
+    Almost everything is done in the constructor, with the main interface
+    to the class then being normal "dict" methods. Two additional methods
+    are provided:
+
+    eval_deferred - Deferred evaluation of a property configuration.
+    remove_elem_pt_attrs - Remove passthrough attributes from the associated element.
+
+    """
+
+    # The list of properties that passthrough recognises, along
+    # with configuration describing how they should act and what
+    # attribute types are valid.
     _PROPERTIES = OrderedDict(
         [
             (
@@ -56,7 +76,7 @@ class PTState(UserDict):
         super().__init__()
 
         if parent is None and source_map is None:
-            ValueError("Both source_map parameter must be provided if parent is not")
+            raise ValueError("source_map parameter must be provided if parent is not")
 
         self.t_elem = t_elem
         self._source_map = (
@@ -79,18 +99,30 @@ class PTState(UserDict):
         if None not in (parent, self.t_elem):
             self._validate_state(parent)
 
-    def eval_deferred(self, prop: str) -> Union[str, list]:
+    def eval_deferred(self, prop: str) -> Union[bool, int, str, Sequence[Union[bool, int, str]]]:
+        """
+        Do deferred evaluation of a property.
+        """
         self._eval_prop(prop, deferred=True)
         return self[prop]
 
     def remove_elem_pt_attrs(self):
+        """
+        From self.t_elem, remove all attributes that in the PT_NS
+        namespace and named in _PROPERTIES. This is basically a
+        final cleanup after processing an element, I think.
+        """
         kws = list(self._PROPERTIES)
         for attr in [f"{{{PT_NS['uri']}}}{kw}" for kw in kws]:
             if attr in self.t_elem.attrib:
                 del self.t_elem.attrib[attr]
 
     @staticmethod
-    def _conform_source_map(smap):
+    def _conform_source_map(smap: Dict[str, Optional[Union[etree._ElementTree, Sequence[etree._ElementTree]]]]) -> Dict[str, SourceGroup]:
+        """
+        Convert a source map dict, in place, into a source group dict.
+        Returns the modified dict.
+        """
         for kw in smap.keys():
             try:
                 smap[kw] = SourceGroup(smap[kw])
@@ -101,16 +133,34 @@ class PTState(UserDict):
         return smap
 
     def _eval_state(self):
+        """
+        Extract attributes named in _PROPERTIES from t_elem to self.exp, then
+        run _eval_prop on each one to get values of the appropriate types. This
+        will store the results in self (as dict entries).
+        """
         updated = self._extract_exps()
+
         if len(updated) and "sources" not in updated and not self["sources"].primary:
+            # Updates happened, but we don't have a source to get them from.
             raise PTEvalError("No source has been set!", self.t_elem)
-        # below loop relies on order of self._PROPERTIES keys, so reorder:
+
+        # The loop below relies on the order of self._PROPERTIES keys,
+        # so reorder "updated" to match:
         updated = [k for k in self._PROPERTIES if k in updated]
+
+        # Run through the properties that were updated and evaluate
+        # the results.
         for prop in updated:
             if self.exp[prop] is not None:
                 self._eval_prop(prop)
 
-    def _eval_prop(self, kw, deferred=False):
+    def _eval_prop(self, kw:str, deferred=False) -> Union[bool, int, str, Sequence[Union[bool, int, str]]]:
+        """
+        Given an attribute name (which will be a key in the _PROPERTIES dict),
+        perform an action (most likely "look up the value as an xpath in
+        self["sources"].primary and convert it to an appropriate type for
+        the property). Where appropriate, store the result, in self[kw].
+        """
         if kw == "sources":
             self["sources"] = self._source_map.get(self.exp["sources"], None)
             if self["sources"] is None:
@@ -134,7 +184,20 @@ class PTState(UserDict):
             ) from None  # e
         self[kw] = self._conform_xpath_result(kw, val)
 
-    def _conform_xpath_result(self, kw, val):
+    def _conform_xpath_result(self, kw: str, val: Union[bool, int, str, float, Sequence[Union[bool, int, str, float]]]) -> Union[bool, int, str, Sequence[Union[bool, int, str]]]:
+        """
+        Given an attribute name and a value, ensure that the value is converted
+        to an appropriate type for the attribute, using _PROPERTIES and return
+        the result. Recursive lists are permitted, in which case we'll recurse
+        down, converting entries as appropriate. Element objects are allowed
+        where _PROPERTIES indicates that a string is accepted, in which case
+        the returned value will be the str(val.text).
+
+        Single element lists are unwrapped - i.e. [1] -> 1
+
+        The type hints above don't make me happy, since they're hand-generated from
+        _PROPERTIES.
+        """
         if isinstance(val, self._PROPERTIES[kw].types):
             return val
         if isinstance(val, list):
@@ -154,6 +217,7 @@ class PTState(UserDict):
             if self["multi_branch"] is not None:
                 return self._conform_xpath_result(kw, val[self["multi_branch"]])
             return [self._conform_xpath_result(kw, v) for v in val]
+
         # XPath returns ints as floats;
         if int in self._PROPERTIES[kw].types and isinstance(val, float):
             val = int(val)
@@ -182,7 +246,12 @@ class PTState(UserDict):
             self.t_elem,
         )
 
-    def _extract_exps(self):
+    def _extract_exps(self) -> Sequence[str]:
+        """
+        Update self.exp with the values of attributes whose
+        names correspond to items in _PROPERTIES. Return a list
+        of the matching attribute names that were found.
+        """
         updated = []
         for attr, exp in self.t_elem.items():
             qname = etree.QName(attr)
@@ -202,10 +271,21 @@ class PTState(UserDict):
             updated.append(qname.localname)
         return updated
 
-    def _exp_str(self, param_name: str):
+    def _exp_str(self, param_name: str) -> str:
+        """
+        Return a string of the form namespace:parameter="parameter_value"
+        for the current object. This function is currenly only used for
+        constructing exception messages.
+        """
         return f"{PT_NS['prefix']}:{param_name}=\"{self.exp[param_name]}\""
 
-    def _validate_state(self, parent):
+    def _validate_state(self, parent: "PTState"):
+        """
+        Check various elements of our state for consistency, both
+        internal and against our parent. Raise exceptions as appropriate.
+        This is, I think, the main place where the passthrough template
+        language is checked for consistency.
+        """
         # v FIXME: should also check after deferred eval of required?
         if self["required"] and not parent["required"]:
             raise PTStateError(

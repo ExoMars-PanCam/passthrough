@@ -9,12 +9,22 @@ ToDo:
 """
 
 
-def size(ctx: PTContext):
+def size(ctx: PTContext) -> str:
+    """
+    Return the file's size
+
+    TODO: inspect t_elem's "unit" attribute to ensure return is in appropriate units
+    """
     fh = _resolve_handler(ctx)
     return str(fh.file_size)
 
 
-def offset(ctx: PTContext):
+def offset(ctx: PTContext) -> str:
+    """
+    Looking at the example where this is mentioned (but not used), it
+    looks like the intent is to fill out the offset of the start of a 
+    data set within the file.
+    """
     fh = _resolve_handler(ctx)
     local_id = _find_structure_lid(ctx)
     try:
@@ -28,17 +38,26 @@ def offset(ctx: PTContext):
         raise PTTemplateError(str(e), ctx.t_elem) from None
 
 
-def md5(ctx: PTContext):
+def md5(ctx: PTContext) -> str:
+    """
+    Return the file's MD5 hex digest
+    """
     fh = _resolve_handler(ctx)
     return str(fh.md5_checksum)
 
 
-def datetime(ctx: PTContext):
+def datetime(ctx: PTContext) -> str:
+    """
+    Return the file's creation date and time
+    """
     fh = _resolve_handler(ctx)
     return str(fh.creation_date_time)
 
 
-def path(ctx: PTContext):
+def path(ctx: PTContext) -> str:
+    """
+    Return the name of the file.
+    """
     fh = _resolve_handler(ctx)
     return str(fh.file_name)
 
@@ -72,11 +91,11 @@ def _find_structure_lid(ctx: PTContext) -> str:
 
 
 functions = {
-    size.__name__: size,
-    offset.__name__: offset,
-    md5.__name__: md5,
-    datetime.__name__: datetime,
-    path.__name__: path,
+    "size":     size,
+    "offset":   offset,
+    "md5":      md5,
+    "datetime": datetime,
+    "path":     path,
 }
 
 resources = {"handlers": {}}  # Dict[etree._Element, FileHandler]
