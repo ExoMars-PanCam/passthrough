@@ -1,10 +1,7 @@
 """Passthrough - PDS4 label template system
 
 """
-try:
-    import importlib.metadata as importlib_metadata  # type: ignore
-except ImportError:
-    import importlib_metadata
+import importlib.metadata as importlib_metadata # type: ignore
 _dist_meta = importlib_metadata.metadata("passthrough")
 __author__ = _dist_meta["Author"]
 __description__ = _dist_meta["Summary"]
@@ -13,6 +10,7 @@ __url__ = _dist_meta["Home-Page"]
 __version__ = _dist_meta["Version"]
 del _dist_meta
 
+print(__project__)
 PT_NS = {"prefix": "pt", "uri": __url__}
 PT_EXT_URI_BASE = f"{__url__}/extensions"
 FILL_TOKEN = "{}"
