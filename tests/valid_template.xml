@@ -1,0 +1,21 @@
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1"
+                       xmlns:img="http://pds.nasa.gov/pds4/img/v1"
+                       xmlns:pt="https://github.com/ExoMars-PanCam/passthrough">
+    <!-- ... -->
+    <Observation_Area>
+        <!-- ... -->
+        <img:Imaging>
+            <!-- ... -->
+            <img:Optical_Filter pt:sources="input">
+                <img:filter_number pt:fetch="true()"/>
+                <img:filter_name/>
+                <img:filter_id pt:required="//img:Optical_Filter/img:filter_number != '0'"/>
+                <img:bandwidth unit="nm" pt:required="//img:Optical_Filter/img:filter_number != '0'"/>
+                <img:center_filter_wavelength unit="nm" pt:required="//img:Optical_Filter/img:filter_number != '0'"/>
+            </img:Optical_Filter>
+            <!-- ... -->
+        </img:Imaging>
+        <!-- ... -->
+    </Observation_Area>
+    <!-- ... -->
+</Product_Observational>

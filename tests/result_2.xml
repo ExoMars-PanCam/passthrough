@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Product_Observational xmlns="http://pds.nasa.gov/pds4/pds/v1" xmlns:img="http://pds.nasa.gov/pds4/img/v1">
+    <!-- ... -->
+    <Observation_Area>
+        <!-- ... -->
+        <img:Imaging>
+            <!-- ... -->
+            <img:Optical_Filter>
+                <img:filter_number>0</img:filter_number>
+                <img:filter_name>UNKNOWN</img:filter_name>
+                </img:Optical_Filter>
+            <!-- ... -->
+        </img:Imaging>
+        <!-- ... -->
+    </Observation_Area>
+    <!-- ... -->
+</Product_Observational>
