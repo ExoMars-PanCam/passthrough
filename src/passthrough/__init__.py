@@ -16,7 +16,11 @@ __version__ = _dist_meta["Version"]
 # used the metadata's "repository" value. This is more complicated in
 # modern versions of pyproject.toml because URLs are now collapsed into
 # a list, possibly with multiple entries.
-__url__ = next(url[12:] for url in _dist_meta.get_all("Project-URL") if url.startswith("Repository, "))
+__url__ = next(
+    item.replace("Repository, ", "", 1)
+        for item in _dist_meta.get_all("Project-URL")
+            if item.startswith("Repository, ")
+)
 del _dist_meta
 
 # The namespace for use within XML attributes for the main code.
