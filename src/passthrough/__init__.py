@@ -3,9 +3,10 @@
 """
 
 # Bring in some metadata from the package.
-import importlib.metadata as importlib_metadata # type: ignore
+import importlib.metadata # type: ignore
+
 # Copy it into module-level variables.
-_dist_meta = importlib_metadata.metadata("passthrough")
+_dist_meta = importlib.metadata.metadata("passthrough")
 __author__ = _dist_meta["Author-email"]
 __description__ = _dist_meta["Summary"]
 __project__ = _dist_meta["Name"]

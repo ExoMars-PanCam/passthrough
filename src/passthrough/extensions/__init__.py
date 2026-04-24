@@ -1,10 +1,11 @@
+import importlib.metadata
 from copy import deepcopy
 from functools import partial
 from typing import Any, MutableMapping, Optional
 
 from lxml import etree
 
-from .. import PT_EXT_URI_BASE, importlib_metadata
+from .. import PT_EXT_URI_BASE
 from ..label_tools import add_default_ns
 
 
@@ -13,7 +14,7 @@ def get_extensions():  # -> MutableMapping[str, ModuleType]:
     Return a dict of all installed extension modules as {prefix: module}.
     """
 
-    extensions = importlib_metadata.entry_points(group="passthrough.extensions")
+    extensions = importlib.metadata.entry_points(group="passthrough.extensions")
 
     # FIXME: kluge. Passthrough doesn't register its entry points if installed in dev
     #  mode in another project (e.g. with poetry and develop=true)
