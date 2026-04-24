@@ -144,6 +144,9 @@ class Template:
         Run the partial label through a series of post-processing steps before exporting
         the completed label to `filename` in `directory`.
 
+        In particular, if file handlers have been registered, run them to
+        create ancillary files. See, for example, proctools.products.pancam.file_handlers.
+
         Args:
             directory: Path to the desired output directory.
             filename: Filename override to use for the output label.
@@ -166,7 +169,9 @@ class Template:
             xml_declaration=True,
         )
 
-    def register_file_handler(self, fh: FileHandler):
+    def register_file_handler(self, fh: FileHandler) -> None:
+        """
+        """
         if not isinstance(fh, FileHandler):
             raise TypeError(f"'{type(fh)}' is not a descendant of 'FileHandler'")
         self._ext.resources["file"]["handlers"][fh.t_elem] = fh
